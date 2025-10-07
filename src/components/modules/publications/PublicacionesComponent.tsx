@@ -4,9 +4,10 @@ import type {Publicacion} from '@/types/publicacion.types.ts';
 import {publicacionSchema} from '@/schemas/publicacion.schema.ts';
 import {publicacionesService} from '@/services/publicaciones.service.ts';
 import {PublicationModal} from "@/components/modules/publications/publication-modal.tsx";
+import {RecursoModal} from "@/components/modules/publications/recurso-modal.tsx";
 
 const publicacionesConfig: CRUDConfig<Publicacion> = {
-    title: 'Publicaciones',
+    title: 'Gestión de Publicaciones',
     actionName: 'Nueva',
     singularName: 'Publicación',
     viewMode: 'cards',
@@ -98,6 +99,7 @@ export default function PublicacionesComponent() {
         <CRUDManager<Publicacion>
             config={publicacionesConfig}
             ViewComponent={PublicationModal}
+            FileManageComponent={RecursoModal}
         />
     )
 }

@@ -12,20 +12,26 @@ interface CRUDManagerProps<T extends BaseEntity> {
     config: CRUDConfig<T>;
     className?: string;
     ViewComponent?: React.ComponentType<{ data: T; open: boolean; onOpenChange: (open: boolean) => void }>;
+    FileManageComponent?: React.ComponentType<{ publicacion: T; open: boolean; onOpenChange: (open: boolean) => void }>;
+    readOnly?: boolean;
 }
 
 export default function CRUDManager<T extends BaseEntity>({
                                                               config,
                                                               className = '',
                                                               ViewComponent,
+                                                              FileManageComponent,
+                                                              readOnly = false,
                                                           }: CRUDManagerProps<T>) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isFileManageModalOpen, setIsFileManageModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<T | null>(null);
     const [viewItem, setViewItem] = useState<T | null>(null);
+    const [fileManageItem, setFileManageItem] = useState<T | null>(null);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
     const fetchData = async () => {
@@ -57,6 +63,11 @@ export default function CRUDManager<T extends BaseEntity>({
     const handleView = (item: T) => {
         setViewItem(item);
         setIsViewModalOpen(true);
+    };
+
+    const handleManageFiles = (item: T) => {
+        setFileManageItem(item);
+        setIsFileManageModalOpen(true);
     };
 
     const handleDeleteClick = (id: number) => {
@@ -115,10 +126,12 @@ export default function CRUDManager<T extends BaseEntity>({
         <div className={`space-y-4 ${className}`}>
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">{config.title}</h2>
-                <Button onClick={handleCreate} className="bg-[#005873] hover:bg-[#7EB520]">
-                    <Plus className="w-4 h-4 mr-2"/>
-                    {config.actionName} {config.singularName}
-                </Button>
+                {!readOnly && (
+                    <Button onClick={handleCreate} className="bg-[#005873] hover:bg-[#7EB520]">
+                        <Plus className="w-4 h-4 mr-2"/>
+                        {config.actionName} {config.singularName}
+                    </Button>
+                )}
             </div>
 
             <DataTable
@@ -127,9 +140,11 @@ export default function CRUDManager<T extends BaseEntity>({
                 onEdit={handleEdit}
                 onDelete={handleDeleteClick}
                 onView={ViewComponent ? handleView : undefined}
-                emptyMessage={`No hay ${config.title.toLowerCase()}. Crea uno nuevo.`}
+                onManageFiles={!readOnly && FileManageComponent ? handleManageFiles : undefined}
+                emptyMessage={`No hay ${config.title.toLowerCase()}. ${!readOnly ? 'Crea uno nuevo.' : ''}`}
                 viewMode={config.viewMode}
                 cardConfig={config.cardConfig}
+                readOnly={readOnly}
             />
 
             {/* Modal de edición/creación */}
@@ -156,6 +171,15 @@ export default function CRUDManager<T extends BaseEntity>({
                     data={viewItem}
                     open={isViewModalOpen}
                     onOpenChange={setIsViewModalOpen}
+                />
+            )}
+
+            {/* Modal de gestión de archivos/recursos */}
+            {FileManageComponent && fileManageItem && (
+                <FileManageComponent
+                    publicacion={fileManageItem}
+                    open={isFileManageModalOpen}
+                    onOpenChange={setIsFileManageModalOpen}
                 />
             )}
 

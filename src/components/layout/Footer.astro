@@ -1,13 +1,29 @@
 ---
-import {Button} from "@/components/ui/button.tsx"
+import {DownloadButton} from "@/components/common/DownloadButton";
+
+interface Props {
+    showDownloadButton?: boolean;
+    idPublicacion?: number;
+    nombrePublicacion?: string;
+    recurso?: any;
+}
+
+const {showDownloadButton = false, idPublicacion, nombrePublicacion, recurso} = Astro.props;
 ---
 
 <footer class="text-white">
     <div class="bg-[#005873] py-8">
         <div class="container mx-auto px-4 text-center">
-            <Button size="lg" className="text-base px-8 bg-[#7EB520] hover:bg-[#6DA018] text-white" client:load>
-                Descargarla ahora
-            </Button>
+            {showDownloadButton && recurso && idPublicacion && nombrePublicacion ? (
+                    <DownloadButton
+                            idPublicacion={idPublicacion}
+                            nombrePublicacion={nombrePublicacion}
+                            recurso={recurso}
+                            client:load
+                    />
+            ) : (
+                    <div></div>
+            )}
         </div>
     </div>
     <div class="bg-[#042a46] py-4">

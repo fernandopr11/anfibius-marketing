@@ -27,9 +27,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Eye, MoreVertical } from 'lucide-react';
-import type { BaseEntity, Column } from '@/types/crud.types';
+import {Button} from '@/components/ui/button';
+import {Pencil, Trash2, Eye, MoreVertical, FolderOpen} from 'lucide-react';
+import type {BaseEntity, Column} from '@/types/crud.types';
 
 type ViewMode = 'table' | 'cards';
 
@@ -38,16 +38,17 @@ interface DataTableProps<T extends BaseEntity> {
     columns: Column<T>[];
     onEdit: (item: T) => void;
     onDelete: (id: number) => void;
-    onView?: (item: T) => void; // Nuevo: función para ver detalles
+    onView?: (item: T) => void;
+    onManageFiles?: (item: T) => void;
     emptyMessage?: string;
     pageSize?: number;
     className?: string;
     viewMode?: ViewMode;
-    // Props específicas para el modo cards
     cardConfig?: {
         title: (item: T) => ReactNode;
         description: (item: T) => ReactNode;
     };
+    readOnly?: boolean;
 }
 
 export default function DataTable<T extends BaseEntity>({
@@ -56,15 +57,16 @@ export default function DataTable<T extends BaseEntity>({
                                                             onEdit,
                                                             onDelete,
                                                             onView,
+                                                            onManageFiles,
                                                             emptyMessage = 'No hay datos disponibles',
                                                             pageSize = 10,
                                                             className = '',
                                                             viewMode = 'table',
                                                             cardConfig,
+                                                            readOnly
                                                         }: DataTableProps<T>) {
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calcular paginación
     const totalPages = Math.ceil(data.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
@@ -99,7 +101,7 @@ export default function DataTable<T extends BaseEntity>({
                             />
                         </PaginationItem>
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        {Array.from({length: totalPages}, (_, i) => i + 1).map((page) => (
                             <PaginationItem key={page}>
                                 <PaginationLink
                                     onClick={() => setCurrentPage(page)}
@@ -162,11 +164,28 @@ export default function DataTable<T extends BaseEntity>({
                                                         onClick={() => onView(item)}
                                                         className="h-8 w-8 p-0 hover:bg-blue-50"
                                                     >
-                                                        <Eye className="w-4 h-4 text-blue-600" />
+                                                        <Eye className="w-4 h-4 text-blue-600"/>
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
                                                     <p>Ver detalles</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )}
+                                        {onManageFiles && (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => onManageFiles(item)}
+                                                        className="h-8 w-8 p-0 hover:bg-green-50"
+                                                    >
+                                                        <FolderOpen className="w-4 h-4 text-green-600"/>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Gestionar recursos</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         )}
@@ -178,7 +197,7 @@ export default function DataTable<T extends BaseEntity>({
                                                     onClick={() => onEdit(item)}
                                                     className="h-8 w-8 p-0 hover:bg-yellow-50"
                                                 >
-                                                    <Pencil className="w-4 h-4 text-yellow-600" />
+                                                    <Pencil className="w-4 h-4 text-yellow-600"/>
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
@@ -193,7 +212,7 @@ export default function DataTable<T extends BaseEntity>({
                                                     onClick={() => item.id && onDelete(item.id)}
                                                     className="h-8 w-8 p-0 hover:bg-red-50"
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                                    <Trash2 className="w-4 h-4 text-red-600"/>
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
@@ -221,9 +240,10 @@ export default function DataTable<T extends BaseEntity>({
                                     {column.header}
                                 </TableHead>
                             ))}
-                            <TableHead className="text-right">Acciones</TableHead>
+                            {!readOnly && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
+
                     <TableBody>
                         {currentData.length === 0 ? (
                             <TableRow>
@@ -242,33 +262,41 @@ export default function DataTable<T extends BaseEntity>({
                                             {getCellValue(item, column)}
                                         </TableCell>
                                     ))}
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                {onView && (
-                                                    <DropdownMenuItem onClick={() => onView(item)}>
-                                                        <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                                                        Ver
+                                    {!readOnly && (
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <MoreVertical className="h-4 w-4"/>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    {onView && (
+                                                        <DropdownMenuItem onClick={() => onView(item)}>
+                                                            <Eye className="mr-2 h-4 w-4 text-blue-600"/>
+                                                            Ver
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {onManageFiles && (
+                                                        <DropdownMenuItem onClick={() => onManageFiles(item)}>
+                                                            <FolderOpen className="mr-2 h-4 w-4 text-green-600"/>
+                                                            Recursos
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem onClick={() => onEdit(item)}>
+                                                        <Pencil className="mr-2 h-4 w-4 text-yellow-600"/>
+                                                        Editar
                                                     </DropdownMenuItem>
-                                                )}
-                                                <DropdownMenuItem onClick={() => onEdit(item)}>
-                                                    <Pencil className="mr-2 h-4 w-4 text-yellow-600" />
-                                                    Editar
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => item.id && onDelete(item.id)}
-                                                >
-                                                    <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                                                    Eliminar
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
+                                                    <DropdownMenuItem
+                                                        onClick={() => item.id && onDelete(item.id)}
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4 text-red-600"/>
+                                                        Eliminar
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))
                         )}
