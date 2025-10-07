@@ -1,0 +1,11 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ProtectedRoute from '@/components/ProtectedRoute.tsx';
+import DashboardContent from '@/components/admin/DashboardContent.tsx';
+---
+
+<ProtectedRoute client:only="react">
+    <AdminLayout title="Dashboard">
+        <DashboardContent client:load/>
+    </AdminLayout>
+</ProtectedRoute>

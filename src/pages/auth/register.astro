@@ -1,8 +1,7 @@
 ---
-// src/pages/auth/login.astro
 import '../../styles/global.css';
-import LoginForm from '@/components/auth/LoginForm';
-import { Image } from 'astro:assets';
+import RegisterForm from '@/components/auth/RegisterForm';
+import {Image} from 'astro:assets';
 import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
 ---
 
@@ -10,7 +9,7 @@ import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width"/>
-    <title>Iniciar Sesión - Anfibius</title>
+    <title>Registrarse - Anfibius</title>
 </head>
 <body class="bg-gray-50">
 <div class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -26,24 +25,23 @@ import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
             />
         </div>
 
-        <!-- Card de Login -->
+        <!-- Card de Registro -->
         <div class="bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-2xl font-bold text-center mb-2">Iniciar Sesión</h1>
-            <p class="text-gray-600 text-center mb-6">Ingresa tus credenciales para continuar</p>
+            <h1 class="text-2xl font-bold text-center mb-2">Crear Cuenta</h1>
+            <p class="text-gray-600 text-center mb-6">Completa el formulario para registrarte</p>
 
-            <LoginForm client:load />
+            <RegisterForm client:load/>
 
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">
-                    ¿No tienes una cuenta?
-                    <a href="/auth/register" class="text-[#005873] hover:text-[#7EB520] font-semibold">
-                        Regístrate aquí
+                    ¿Ya tienes una cuenta?
+                    <a href="/auth/login" class="text-[#005873] hover:text-[#7EB520] font-semibold">
+                        Inicia sesión aquí
                     </a>
                 </p>
             </div>
         </div>
 
-        <!-- Link de regreso -->
         <div class="mt-4 text-center">
             <a href="/" class="text-sm text-gray-600 hover:text-gray-800">
                 ← Volver al inicio

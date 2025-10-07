@@ -1,0 +1,11 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import PublicacionesComponent from '@/components/modules/publications/Publicaciones.tsx';
+---
+
+<ProtectedRoute client:only="react">
+    <AdminLayout title="Publicaciones">
+        <PublicacionesComponent client:load />
+    </AdminLayout>
+</ProtectedRoute>
