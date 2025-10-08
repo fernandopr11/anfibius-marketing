@@ -43,13 +43,16 @@ export const publicacionesService = {
     async update(id: number, data: Publicacion): Promise<Publicacion> {
         const token = storage.getToken();
 
+        // Eliminar el id del objeto data antes de enviarlo
+        const { id: _, ...dataWithoutId } = data;
+
         const response = await fetch(`${API_URL}/publicaciones/${id}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(dataWithoutId),
         });
 
         if (!response.ok) {

@@ -1,13 +1,13 @@
-import {useState, useEffect} from 'react';
-import {Button} from '@/components/ui/button';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Plus} from 'lucide-react';
-import {toast} from 'sonner';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import DataTable from './DataTable';
 import DynamicForm from './DynamicForm';
 import Filters from "@/components/common/Filter.tsx";
 import ConfirmDialog from '@/components/ui/confirm-dialog.tsx';
-import type {BaseEntity, CRUDConfig} from '@/types/crud.types';
+import type { BaseEntity, CRUDConfig } from '@/types/crud.types';
 
 interface CRUDManagerProps<T extends BaseEntity> {
     config: CRUDConfig<T>;
@@ -18,12 +18,12 @@ interface CRUDManagerProps<T extends BaseEntity> {
 }
 
 export default function CRUDManager<T extends BaseEntity>({
-                                                              config,
-                                                              className = '',
-                                                              ViewComponent,
-                                                              FileManageComponent,
-                                                              readOnly = false,
-                                                          }: CRUDManagerProps<T>) {
+    config,
+    className = '',
+    ViewComponent,
+    FileManageComponent,
+    readOnly = false,
+}: CRUDManagerProps<T>) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,7 +110,9 @@ export default function CRUDManager<T extends BaseEntity>({
     const handleSubmit = async (values: any) => {
         try {
             if (selectedItem?.id) {
+
                 await config.service.update(selectedItem.id, values);
+
                 toast.success(`${config.singularName} actualizado correctamente`);
             } else {
                 await config.service.create(values);
@@ -144,7 +146,7 @@ export default function CRUDManager<T extends BaseEntity>({
                 <h2 className="text-xl font-bold">{config.title}</h2>
                 {!readOnly && (
                     <Button onClick={handleCreate} className="bg-[#005873] hover:bg-[#7EB520]">
-                        <Plus className="w-4 h-4 mr-2"/>
+                        <Plus className="w-4 h-4 mr-2" />
                         {config.actionName} {config.singularName}
                     </Button>
                 )}

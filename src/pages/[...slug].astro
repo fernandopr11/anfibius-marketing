@@ -6,42 +6,52 @@ import Footer from "@/components/layout/Footer.astro";
 import {Calculator, HandCoins, TrendingUp, Users} from "lucide-react";
 import {DownloadButton} from "@/components/common/DownloadButton";
 
-export async function getStaticPaths() {
-    try {
-        const API_URL = import.meta.env.PUBLIC_API_URL;
-        const response = await fetch(`${API_URL}/publicaciones`);
+// En modo SSR, no necesitamos getStaticPaths
+const { slug: slugParam } = Astro.params;
 
-        if (!response.ok) {
-            return [];
-        }
+// [...slug] captura como string "path/to/page", lo convertimos
+const slug = slugParam || '';
 
-        const publicaciones = await response.json();
-
-        return publicaciones.map((pub: any) => {
-
-            const slug = pub.url;
-            return {
-                params: {slug},
-            };
-        });
-    } catch (error) {
-        console.error('Error al obtener publicaciones:', error);
-        return [];
-    }
-}
-const {slug} = Astro.params;
+console.log('[SLUG] ============================================');
+console.log('[SLUG] Astro.params completo:', JSON.stringify(Astro.params));
+console.log('[SLUG] Astro.url.pathname:', Astro.url.pathname);
+console.log('[SLUG] slugParam recibido:', slugParam);
+console.log('[SLUG] slug procesado:', `"${slug}"`);
+console.log('[SLUG] tipo de slug:', typeof slug);
+console.log('[SLUG] ============================================');
 
 async function getPublicacionByUrl(urlSlug: string) {
     try {
         const API_URL = import.meta.env.PUBLIC_API_URL;
-        const response = await fetch(`${API_URL}/publicaciones/by-url/${urlSlug}`);
+        const url = `${API_URL}/publicaciones/by-url/${urlSlug}`;
+        console.log('[SLUG] ============================================');
+        console.log('[SLUG] API_URL:', API_URL);
+        console.log('[SLUG] URL completa:', url);
+        console.log('[SLUG] Slug buscado:', `"${urlSlug}"`);
+        console.log('[SLUG] Longitud del slug:', urlSlug.length);
+        
+        const response = await fetch(url);
+        
+        console.log('[SLUG] Response status:', response.status);
+        console.log('[SLUG] Response statusText:', response.statusText);
+        
+        // Intentar leer el body incluso si hay error
+        const responseText = await response.text();
+        console.log('[SLUG] Response body:', responseText);
+        
         if (!response.ok) {
+            console.error('[SLUG] ❌ Error en API:', response.status);
             return null;
         }
 
-        return await response.json();
+        const data = JSON.parse(responseText);
+        console.log('[SLUG] ✅ Publicación encontrada:', data?.nombre || 'SIN NOMBRE');
+        console.log('[SLUG] Datos completos:', JSON.stringify(data, null, 2));
+        console.log('[SLUG] ============================================');
+        return data;
     } catch (error) {
-        console.error('Error al obtener publicación:', error);
+        console.error('[SLUG] ❌ Excepción al obtener publicación:', error);
+        console.error('[SLUG] Error message:', error instanceof Error ? error.message : String(error));
         return null;
     }
 }
@@ -63,20 +73,32 @@ async function getRecursoByPublicacion(idPublicacion: number) {
     }
 }
 
-const publicacion = await getPublicacionByUrl(slug!);
+// SIEMPRE renderizar la página, incluso si no hay datos
+console.log('[SLUG] Llamando a getPublicacionByUrl con:', slug);
+let publicacion = null;
+let recurso = null;
 
-if (!publicacion) {
-    return Astro.redirect('/');
+try {
+    publicacion = await getPublicacionByUrl(slug);
+    console.log('[SLUG] Resultado de getPublicacionByUrl:', publicacion ? 'ENCONTRADA' : 'NO ENCONTRADA');
+    
+    if (publicacion?.id) {
+        console.log('[SLUG] ✅ Publicación encontrada, cargando recurso...');
+        recurso = await getRecursoByPublicacion(publicacion.id);
+    } else {
+        console.error('[SLUG] ❌ Publicación no encontrada para:', slug);
+        console.error('[SLUG] Renderizando página vacía con mensaje 404');
+    }
+} catch (error) {
+    console.error('[SLUG] ❌ Error general:', error);
 }
-
-const recurso = publicacion.id ? await getRecursoByPublicacion(publicacion.id) : null;
 ---
 
 <html lang="es">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width"/>
-    <title>Anfibius</title>
+    <title>{publicacion?.titulo1 || 'Cargando...'} | Anfibius</title>
 </head>
 <body>
 <header class="w-full py-6">
@@ -94,6 +116,20 @@ const recurso = publicacion.id ? await getRecursoByPublicacion(publicacion.id) :
 </header>
 
 <main class="bg-background">
+    {!publicacion ? (
+        <!-- Página cuando no hay datos -->
+        <section class="min-h-screen flex items-center justify-center">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-4xl font-bold mb-4">404 - Página no encontrada</h1>
+                <p class="text-lg text-gray-600 mb-8">La publicación "{slug}" no existe o no se pudo cargar.</p>
+                <a href="/" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    Volver al inicio
+                </a>
+            </div>
+        </section>
+    ) : (
+        <>
+    <!-- Página con datos -->
     <!-- Sección Hero con Título 1 y Texto 1 -->
     <section class="container mx-auto px-4 py-12 md:py-10">
         <div class="grid gap-12 md:grid-cols-2 items-start max-w-6xl mx-auto">
@@ -182,12 +218,18 @@ const recurso = publicacion.id ? await getRecursoByPublicacion(publicacion.id) :
             </div>
         </div>
     </section>
+    
+    {publicacion && (
+        <Footer
+            showDownloadButton={!!recurso}
+            idPublicacion={publicacion.id}
+            nombrePublicacion={publicacion.nombre}
+            recurso={recurso}
+        />
+    )}
+    </>
+    )}
 </main>
-<Footer
-        showDownloadButton={!!recurso}
-        idPublicacion={publicacion.id}
-        nombrePublicacion={publicacion.nombre}
-        recurso={recurso}
-/>
+
 </body>
 </html>

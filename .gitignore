@@ -22,3 +22,16 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# deployment files
+deploy.zip
+*.tar.gz
+
+# PM2 logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
