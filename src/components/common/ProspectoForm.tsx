@@ -62,11 +62,11 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                 <p className="text-gray-600 mb-4">
                     Nuestro equipo se pondrá en contacto contigo pronto.
                 </p>
-                <p className="text-gray-600 mb-6">
-                    Recibirás una confirmación por correo electrónico.
-                </p>
                 <Button
-                    onClick={() => window.location.href = '/'}
+                    onClick={() => {
+                        const ruta = sessionStorage.getItem('rutaOrigen') || '/';
+                        window.location.href = ruta;
+                    }}
                     className="bg-[#7EB520] hover:bg-[#6DA018]"
                 >
                     Volver al inicio
@@ -93,7 +93,6 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                             name="empresa"
                             type="text"
                             className="w-full px-3 py-2 border rounded-md"
-                            placeholder="TechSoft Solutions"
                         />
                         <ErrorMessage
                             name="empresa"
@@ -113,7 +112,6 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                                 name="giro"
                                 type="text"
                                 className="w-full px-3 py-2 border rounded-md"
-                                placeholder="Tecnología y Software"
                             />
                             <ErrorMessage
                                 name="giro"

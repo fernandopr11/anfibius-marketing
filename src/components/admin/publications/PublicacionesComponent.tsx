@@ -3,8 +3,8 @@ import type {CRUDConfig} from '@/types/crud.types.ts';
 import type {Publicacion} from '@/types/publicacion.types.ts';
 import {publicacionSchema} from '@/schemas/publicacion.schema.ts';
 import {publicacionesService} from '@/services/publicaciones.service.ts';
-import {PublicationModal} from "@/components/modules/publications/publication-modal.tsx";
-import {RecursoModal} from "@/components/modules/publications/recurso-modal.tsx";
+import {PublicationModal} from "@/components/admin/publications/publication-modal.tsx";
+import {RecursoModal} from "@/components/admin/publications/recurso-modal.tsx";
 
 const publicacionesConfig: CRUDConfig<Publicacion> = {
     title: 'Gestión de Publicaciones',
@@ -44,26 +44,21 @@ const publicacionesConfig: CRUDConfig<Publicacion> = {
             name: 'nombre',
             label: 'Nombre',
             type: 'text',
-            placeholder: 'Guía de restaurantes',
         },
         {
             name: 'url',
             label: 'URL',
             type: 'text',
-            placeholder: '/restaurantes',
         },
         {
             name: 'titulo1',
             label: 'Título 1',
             type: 'text',
-            placeholder: 'Cómo promocionar tu restaurante',
         },
         {
             name: 'texto1',
             label: 'Texto 1',
-            type: 'textarea',
-            placeholder: 'Descubre las mejores estrategias...',
-            rows: 3,
+            type: 'richtext',
         },
         {
             name: 'imagen1',
@@ -74,14 +69,11 @@ const publicacionesConfig: CRUDConfig<Publicacion> = {
             name: 'titulo2',
             label: 'Título 2',
             type: 'text',
-            placeholder: 'Casos de Éxito',
         },
         {
             name: 'texto2',
             label: 'Texto 2',
-            type: 'textarea',
-            placeholder: 'Conoce casos reales...',
-            rows: 3,
+            type: 'richtext',
         },
         {
             name: 'imagen2',

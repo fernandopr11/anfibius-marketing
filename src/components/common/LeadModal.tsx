@@ -7,6 +7,7 @@ import {leadsService} from '@/services/leads.service';
 import {leadSchema} from '@/schemas/lead.schema';
 import {encryptForUrl} from '@/lib/crypto';
 import type {LeadFormData} from '@/types/lead.types';
+import { useEffect } from 'react';
 
 interface LeadModalProps {
     open: boolean;
@@ -27,6 +28,12 @@ export function LeadModal({
                               recursoNombre,
                               recursoFormato
                           }: LeadModalProps) {
+    // Guardar la ruta de origen al abrir el modal, solo si no existe
+    useEffect(() => {
+        if (open && !sessionStorage.getItem('rutaOrigen')) {
+            sessionStorage.setItem('rutaOrigen', window.location.pathname);
+        }
+    }, [open]);
 
     const initialValues: LeadFormData = {
         cedula: '',
@@ -92,7 +99,6 @@ export function LeadModal({
                                     type="text"
                                     maxLength={10}
                                     className="w-full px-3 py-2 border rounded-md"
-                                    placeholder="1234567890"
                                 />
                                 <ErrorMessage
                                     name="cedula"
@@ -112,7 +118,6 @@ export function LeadModal({
                                         name="nombres"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
-                                        placeholder="Juan Carlos"
                                     />
                                     <ErrorMessage
                                         name="nombres"
@@ -130,7 +135,6 @@ export function LeadModal({
                                         name="apellidos"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
-                                        placeholder="Pérez García"
                                     />
                                     <ErrorMessage
                                         name="apellidos"
@@ -151,7 +155,6 @@ export function LeadModal({
                                     type="text"
                                     maxLength={10}
                                     className="w-full px-3 py-2 border rounded-md"
-                                    placeholder="0999123456"
                                 />
                                 <ErrorMessage
                                     name="celular"
@@ -170,7 +173,6 @@ export function LeadModal({
                                     name="direccion"
                                     type="text"
                                     className="w-full px-3 py-2 border rounded-md"
-                                    placeholder="Av. Amazonas y Río Coca"
                                 />
                                 <ErrorMessage
                                     name="direccion"
@@ -190,7 +192,6 @@ export function LeadModal({
                                         name="ciudad"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
-                                        placeholder="Quito"
                                     />
                                     <ErrorMessage
                                         name="ciudad"
@@ -208,7 +209,6 @@ export function LeadModal({
                                         name="provincia"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
-                                        placeholder="Pichincha"
                                     />
                                     <ErrorMessage
                                         name="provincia"

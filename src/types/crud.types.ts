@@ -17,7 +17,7 @@ export interface Column<T> {
 export interface FormField {
     name: string;
     label: string;
-    type: 'text' | 'textarea' | 'email' | 'url' | 'number' | 'select' | 'image';
+    type: 'text' | 'textarea' | 'email' | 'url' | 'number' | 'select' | 'image' | 'richtext';
     placeholder?: string;
     rows?: number;
     options?: { value: string; label: string }[];

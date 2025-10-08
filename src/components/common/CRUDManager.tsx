@@ -173,7 +173,7 @@ export default function CRUDManager<T extends BaseEntity>({
 
             {/* Modal de edición/creación */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             {selectedItem ? `Editar ${config.singularName}` : `Nuevo ${config.singularName}`}

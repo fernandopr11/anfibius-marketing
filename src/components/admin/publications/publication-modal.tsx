@@ -6,7 +6,7 @@ import {Separator} from "@/components/ui/separator.tsx";
 import {ExternalLink, Download, FileText, Loader2} from "lucide-react";
 import type {Publicacion} from '@/types/publicacion.types.ts';
 import type {Recurso} from '@/types/recurso.types.ts';
-import {recursosService} from '@/services/recursos.service';
+import {recursosService} from '@/services/recursos.service.ts';
 
 interface PublicationModalProps {
     open: boolean;
@@ -55,7 +55,7 @@ export function PublicationModal({open, onOpenChange, data}: PublicationModalPro
                             <DialogTitle className="text-2xl font-semibold tracking-tight">{data.nombre}</DialogTitle>
                             {data.url && (
                                 <a
-                                    href={data.url}
+                                    href={`${window.location.origin}/${data.url}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -128,8 +128,13 @@ export function PublicationModal({open, onOpenChange, data}: PublicationModalPro
                                 <Badge variant="secondary" className="mb-2 text-xs">
                                     Sección 1
                                 </Badge>
-                                <h2 className="text-2xl font-semibold tracking-tight text-balance leading-tight">{data.titulo1}</h2>
-                                <p className="text-base leading-relaxed text-muted-foreground text-pretty">{data.texto1}</p>
+                                <h2 className="text-2xl font-semibold tracking-tight text-balance leading-tight">
+                                    {data.titulo1}
+                                </h2>
+                                <div
+                                    className="text-base leading-relaxed text-muted-foreground prose prose-lg max-w-none"
+                                    dangerouslySetInnerHTML={{__html: data.texto1}}
+                                />
                             </div>
 
                             <Separator/>
@@ -139,8 +144,13 @@ export function PublicationModal({open, onOpenChange, data}: PublicationModalPro
                                 <Badge variant="secondary" className="mb-2 text-xs">
                                     Sección 2
                                 </Badge>
-                                <h2 className="text-2xl font-semibold tracking-tight text-balance leading-tight">{data.titulo2}</h2>
-                                <p className="text-base leading-relaxed text-muted-foreground text-pretty">{data.texto2}</p>
+                                <h2 className="text-2xl font-semibold tracking-tight text-balance leading-tight">
+                                    {data.titulo2}
+                                </h2>
+                                <div
+                                    className="text-base leading-relaxed text-muted-foreground prose prose-lg max-w-none"
+                                    dangerouslySetInnerHTML={{__html: data.texto2}}
+                                />
                             </div>
                         </div>
                     </div>

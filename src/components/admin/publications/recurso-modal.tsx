@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import { Loader2, Trash2, Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import FileUpload from '@/components/common/FileUpload';
-import { recursosService } from '@/services/recursos.service';
-import { recursoSchema } from '@/schemas/recurso.schema';
-import type { Recurso } from '@/types/recurso.types';
-import type { Publicacion } from '@/types/publicacion.types';
-import ConfirmDialog from '@/components/ui/confirm-dialog';
+import FileUpload from '@/components/common/FileUpload.tsx';
+import { recursosService } from '@/services/recursos.service.ts';
+import { recursoSchema } from '@/schemas/recurso.schema.ts';
+import type { Recurso } from '@/types/recurso.types.ts';
+import type { Publicacion } from '@/types/publicacion.types.ts';
+import ConfirmDialog from '@/components/ui/confirm-dialog.tsx';
 
 interface RecursoModalProps {
     open: boolean;

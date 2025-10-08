@@ -1,6 +1,7 @@
 import {Formik, Form, Field, ErrorMessage} from 'formik';
 import {Button} from '@/components/ui/button';
 import ImageUpload from './ImageUpload';
+import RichTextEditor from './RichTextEditor';
 import type {FormField} from '@/types/crud.types';
 import * as Yup from 'yup';
 
@@ -32,6 +33,17 @@ export default function DynamicForm({
                     value={values[field.name] || ''}
                     onChange={(base64) => setFieldValue(field.name, base64)}
                     label={field.label}
+                />
+            );
+        }
+
+        if (field.type === 'richtext') {
+            return (
+                <RichTextEditor
+                    value={values[field.name] || ''}
+                    onChange={(html) => setFieldValue(field.name, html)}
+                    label={field.label}
+                    placeholder={field.placeholder}
                 />
             );
         }
@@ -86,7 +98,7 @@ export default function DynamicForm({
                 <Form className="space-y-4">
                     {fields.map((field) => (
                         <div key={field.name} className="space-y-2">
-                            {field.type !== 'image' && (
+                            {field.type !== 'image' && field.type !== 'richtext' && (
                                 <label className="text-sm font-medium">{field.label}</label>
                             )}
                             {renderField(field, setFieldValue, values)}
