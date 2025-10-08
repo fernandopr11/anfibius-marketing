@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { leadsService } from '@/services/leads.service';
@@ -12,7 +12,9 @@ interface LeadModalProps {
     onOpenChange: (open: boolean) => void;
     idPublicacion: number;
     nombrePublicacion: string;
-    onSuccess: () => void;
+    recursoArchivo: string;
+    recursoNombre: string;
+    recursoFormato: string;
 }
 
 export function LeadModal({
@@ -20,7 +22,9 @@ export function LeadModal({
                               onOpenChange,
                               idPublicacion,
                               nombrePublicacion,
-                              onSuccess
+                              recursoArchivo,
+                              recursoNombre,
+                              recursoFormato
                           }: LeadModalProps) {
 
     const initialValues: LeadFormData = {
@@ -35,10 +39,17 @@ export function LeadModal({
 
     const handleSubmit = async (values: LeadFormData, { setSubmitting }: any) => {
         try {
-            await leadsService.create(idPublicacion, values);
-            toast.success('¡Gracias por tu interés! Tu descarga comenzará en breve.');
+            const leadCreado = await leadsService.create(idPublicacion, values);
+            toast.success('¡Datos registrados! Ahora agenda tu cita.');
             onOpenChange(false);
-            onSuccess();
+
+            // Guardar datos del recurso en sessionStorage
+            sessionStorage.setItem('recursoArchivo', recursoArchivo);
+            sessionStorage.setItem('recursoNombre', recursoNombre);
+            sessionStorage.setItem('recursoFormato', recursoFormato);
+
+            // Redirigir a la página de agendamiento con el ID del lead
+            window.location.href = `/descarga?idPersonas=${leadCreado.id}`;
         } catch (error) {
             console.error('Error al crear lead:', error);
             toast.error('Error al procesar tu solicitud. Por favor intenta de nuevo.');
@@ -51,8 +62,8 @@ export function LeadModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl text-center">
-                        {nombrePublicacion}
+                    <DialogTitle className="text-2xl">
+                        Descarga: {nombrePublicacion}
                     </DialogTitle>
                     <p className="text-sm text-gray-600 mt-2">
                         Por favor completa tus datos para acceder al recurso
@@ -77,6 +88,7 @@ export function LeadModal({
                                     type="text"
                                     maxLength={10}
                                     className="w-full px-3 py-2 border rounded-md"
+                                    placeholder="1234567890"
                                 />
                                 <ErrorMessage
                                     name="cedula"
@@ -96,6 +108,7 @@ export function LeadModal({
                                         name="nombres"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
+                                        placeholder="Juan Carlos"
                                     />
                                     <ErrorMessage
                                         name="nombres"
@@ -113,6 +126,7 @@ export function LeadModal({
                                         name="apellidos"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
+                                        placeholder="Pérez García"
                                     />
                                     <ErrorMessage
                                         name="apellidos"
@@ -133,6 +147,7 @@ export function LeadModal({
                                     type="text"
                                     maxLength={10}
                                     className="w-full px-3 py-2 border rounded-md"
+                                    placeholder="0999123456"
                                 />
                                 <ErrorMessage
                                     name="celular"
@@ -151,6 +166,7 @@ export function LeadModal({
                                     name="direccion"
                                     type="text"
                                     className="w-full px-3 py-2 border rounded-md"
+                                    placeholder="Av. Amazonas y Río Coca"
                                 />
                                 <ErrorMessage
                                     name="direccion"
@@ -162,23 +178,6 @@ export function LeadModal({
                             {/* Ciudad y Provincia en grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="provincia" className="text-sm font-medium">
-                                        Provincia <span className="text-red-600">*</span>
-                                    </label>
-                                    <Field
-                                        id="provincia"
-                                        name="provincia"
-                                        type="text"
-                                        className="w-full px-3 py-2 border rounded-md"
-                                    />
-                                    <ErrorMessage
-                                        name="provincia"
-                                        component="p"
-                                        className="text-sm text-red-600"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
                                     <label htmlFor="ciudad" className="text-sm font-medium">
                                         Ciudad <span className="text-red-600">*</span>
                                     </label>
@@ -187,9 +186,28 @@ export function LeadModal({
                                         name="ciudad"
                                         type="text"
                                         className="w-full px-3 py-2 border rounded-md"
+                                        placeholder="Quito"
                                     />
                                     <ErrorMessage
                                         name="ciudad"
+                                        component="p"
+                                        className="text-sm text-red-600"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="provincia" className="text-sm font-medium">
+                                        Provincia <span className="text-red-600">*</span>
+                                    </label>
+                                    <Field
+                                        id="provincia"
+                                        name="provincia"
+                                        type="text"
+                                        className="w-full px-3 py-2 border rounded-md"
+                                        placeholder="Pichincha"
+                                    />
+                                    <ErrorMessage
+                                        name="provincia"
                                         component="p"
                                         className="text-sm text-red-600"
                                     />
@@ -218,8 +236,8 @@ export function LeadModal({
                                         </>
                                     ) : (
                                         <>
-                                            <Download className="w-4 h-4 mr-2" />
-                                            Descargar ahora
+                                            <ArrowRight className="w-4 h-4 mr-2" />
+                                            Continuar
                                         </>
                                     )}
                                 </Button>

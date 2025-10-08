@@ -32,7 +32,7 @@ export const prospectosService = {
     },
 
     /**
-     * Obtener todos los prospectos (CON token - admin)
+     * Obtener todos los prospectos
      */
     async getAll(): Promise<Prospecto[]> {
         const token = storage.getToken();

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { LeadModal } from './LeadModal';
-import type { Recurso } from '@/types/recurso.types';
+import {useState} from 'react';
+import {Button} from "@/components/ui/button";
+import {LeadModal} from './LeadModal';
+import type {Recurso} from '@/types/recurso.types';
 
 interface DownloadButtonProps {
     idPublicacion: number;
@@ -9,17 +9,8 @@ interface DownloadButtonProps {
     recurso: Recurso;
 }
 
-export function DownloadButton({ idPublicacion, nombrePublicacion, recurso }: DownloadButtonProps) {
+export function DownloadButton({idPublicacion, nombrePublicacion, recurso}: DownloadButtonProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = recurso.archivo;
-        link.download = `${recurso.nombre}.${recurso.formato}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     return (
         <>
@@ -36,7 +27,9 @@ export function DownloadButton({ idPublicacion, nombrePublicacion, recurso }: Do
                 onOpenChange={setIsModalOpen}
                 idPublicacion={idPublicacion}
                 nombrePublicacion={nombrePublicacion}
-                onSuccess={handleDownload}
+                recursoArchivo={recurso.archivo}
+                recursoNombre={recurso.nombre}
+                recursoFormato={recurso.formato}
             />
         </>
     );
