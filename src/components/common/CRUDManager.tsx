@@ -5,6 +5,7 @@ import {Plus} from 'lucide-react';
 import {toast} from 'sonner';
 import DataTable from './DataTable';
 import DynamicForm from './DynamicForm';
+import Filters from "@/components/common/Filter.tsx";
 import ConfirmDialog from '@/components/ui/confirm-dialog.tsx';
 import type {BaseEntity, CRUDConfig} from '@/types/crud.types';
 
@@ -33,10 +34,20 @@ export default function CRUDManager<T extends BaseEntity>({
     const [viewItem, setViewItem] = useState<T | null>(null);
     const [fileManageItem, setFileManageItem] = useState<T | null>(null);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
-    const fetchData = async () => {
+    const fetchData = async (filters?: Record<string, any>) => {
         try {
-            const result = await config.service.getAll();
+            setLoading(true);
+            let result;
+
+            // Si hay filtros y el servicio soporta filtrado
+            if (filters && Object.keys(filters).length > 0 && config.service.getFiltered) {
+                result = await config.service.getFiltered(filters);
+            } else {
+                result = await config.service.getAll();
+            }
+
             setData(result);
         } catch (error) {
             console.error('Error al cargar datos:', error);
@@ -49,6 +60,11 @@ export default function CRUDManager<T extends BaseEntity>({
     useEffect(() => {
         fetchData();
     }, []);
+
+    const handleFilterChange = (filters: Record<string, any>) => {
+        setActiveFilters(filters);
+        fetchData(filters);
+    };
 
     const handleCreate = () => {
         setSelectedItem(null);
@@ -81,7 +97,7 @@ export default function CRUDManager<T extends BaseEntity>({
         try {
             await config.service.delete(itemToDelete);
             toast.success(`${config.singularName} eliminado correctamente`);
-            await fetchData();
+            await fetchData(activeFilters);
         } catch (error) {
             console.error('Error al eliminar:', error);
             toast.error(`Error al eliminar ${config.singularName.toLowerCase()}`);
@@ -101,7 +117,7 @@ export default function CRUDManager<T extends BaseEntity>({
                 toast.success(`${config.singularName} creado correctamente`);
             }
             setIsModalOpen(false);
-            await fetchData();
+            await fetchData(activeFilters);
         } catch (error) {
             console.error('Error al guardar:', error);
             toast.error(`Error al guardar ${config.singularName.toLowerCase()}`);
@@ -133,6 +149,14 @@ export default function CRUDManager<T extends BaseEntity>({
                     </Button>
                 )}
             </div>
+
+            {/* Filtros */}
+            {config.filters && config.filters.length > 0 && (
+                <Filters
+                    filters={config.filters}
+                    onFilterChange={handleFilterChange}
+                />
+            )}
 
             <DataTable
                 data={data}

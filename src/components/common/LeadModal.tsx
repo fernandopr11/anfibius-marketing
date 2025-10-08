@@ -1,11 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { leadsService } from '@/services/leads.service';
-import { leadSchema } from '@/schemas/lead.schema';
-import type { LeadFormData } from '@/types/lead.types';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Button} from "@/components/ui/button";
+import {Loader2, ArrowRight} from "lucide-react";
+import {toast} from "sonner";
+import {Formik, Form, Field, ErrorMessage} from 'formik';
+import {leadsService} from '@/services/leads.service';
+import {leadSchema} from '@/schemas/lead.schema';
+import {encryptForUrl} from '@/lib/crypto';
+import type {LeadFormData} from '@/types/lead.types';
 
 interface LeadModalProps {
     open: boolean;
@@ -37,7 +38,7 @@ export function LeadModal({
         provincia: '',
     };
 
-    const handleSubmit = async (values: LeadFormData, { setSubmitting }: any) => {
+    const handleSubmit = async (values: LeadFormData, {setSubmitting}: any) => {
         try {
             const leadCreado = await leadsService.create(idPublicacion, values);
             toast.success('¡Datos registrados! Ahora agenda tu cita.');
@@ -48,8 +49,11 @@ export function LeadModal({
             sessionStorage.setItem('recursoNombre', recursoNombre);
             sessionStorage.setItem('recursoFormato', recursoFormato);
 
-            // Redirigir a la página de agendamiento con el ID del lead
-            window.location.href = `/descarga?idPersonas=${leadCreado.id}`;
+            // Encriptar el ID del lead
+            const idEncriptado = encryptForUrl(leadCreado.id!.toString());
+
+            // Redirigir con ID encriptado
+            window.location.href = `/descarga?token=${idEncriptado}`;
         } catch (error) {
             console.error('Error al crear lead:', error);
             toast.error('Error al procesar tu solicitud. Por favor intenta de nuevo.');
@@ -62,10 +66,10 @@ export function LeadModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl">
-                        Descarga: {nombrePublicacion}
+                    <DialogTitle className="text-2xl text-center">
+                        {nombrePublicacion}
                     </DialogTitle>
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-sm text-gray-600 mt-2 text-center">
                         Por favor completa tus datos para acceder al recurso
                     </p>
                 </DialogHeader>
@@ -75,7 +79,7 @@ export function LeadModal({
                     validationSchema={leadSchema}
                     onSubmit={handleSubmit}
                 >
-                    {({ isSubmitting }) => (
+                    {({isSubmitting}) => (
                         <Form className="space-y-4">
                             {/* Cédula */}
                             <div className="space-y-2">
@@ -231,12 +235,12 @@ export function LeadModal({
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
                                             Procesando...
                                         </>
                                     ) : (
                                         <>
-                                            <ArrowRight className="w-4 h-4 mr-2" />
+                                            <ArrowRight className="w-4 h-4 mr-2"/>
                                             Continuar
                                         </>
                                     )}

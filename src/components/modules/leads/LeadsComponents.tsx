@@ -3,6 +3,7 @@ import type {CRUDConfig} from '@/types/crud.types.ts';
 import type {Lead} from '@/types/lead.types.ts';
 import {leadSchema} from "@/schemas/lead.schema.ts";
 import {leadsService} from "@/services/leads.service.ts";
+import {publicacionesService} from "@/services/publicaciones.service.ts";
 
 const leadConfig: CRUDConfig<Lead> = {
     title: 'Gestión de Leads',
@@ -51,6 +52,31 @@ const leadConfig: CRUDConfig<Lead> = {
     formFields: [],
     validationSchema: leadSchema,
     service: leadsService,
+    filters: [
+        {
+            name: 'publicacion',
+            label: 'Filtrar por Publicación',
+            type: 'select',
+            fetchOptions: async () => {
+                try {
+                    const publicaciones = await publicacionesService.getAll();
+                    return publicaciones.map(pub => ({
+                        value: pub.id!,
+                        label: pub.nombre
+                    }));
+                } catch (error) {
+                    console.error('Error al cargar publicaciones:', error);
+                    return [];
+                }
+            }
+        },
+        {
+            name: 'cedula',
+            label: 'Cedula',
+            type: 'text',
+            placeholder: 'Buscar por cedula...'
+        },
+    ]
 };
 
 export default function LeadsComponent() {

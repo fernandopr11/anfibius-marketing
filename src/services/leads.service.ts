@@ -52,6 +52,36 @@ export const leadsService = {
 
     },
 
+    /**
+     * Obtener leads filtrados
+     */
+    async getFiltered(filters: Record<string, any>): Promise<Lead[]> {
+        const token = storage.getToken();
+        const headers = {'Authorization': `Bearer ${token}`};
+
+        try {
+            const queryParams = new URLSearchParams(
+                Object.entries(filters).filter(([_, v]) => v != null && v !== '')
+            ).toString();
+
+            const url = queryParams
+                ? `${API_URL}/leads?${queryParams}`
+                : `${API_URL}/leads`;
+
+            const response = await fetch(url, {headers});
+            if (!response.ok) throw new Error(`Error al obtener leads (${queryParams || 'todos'})`);
+
+            const data = await response.json();
+            const results = Array.isArray(data) ? data : (data ? [data] : []);
+
+            return results;
+        } catch (error) {
+            console.error('Error al filtrar leads:', error);
+            return [];
+        }
+    },
+
+
     async update(id: number, data: any): Promise<Lead> {
         throw new Error('Método no implementado');
     },

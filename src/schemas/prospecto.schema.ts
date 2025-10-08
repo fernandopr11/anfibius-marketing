@@ -10,10 +10,6 @@ export const prospectoSchema = Yup.object({
         .required('El número de empleados es requerido')
         .positive('Debe ser un número positivo')
         .integer('Debe ser un número entero'),
-    fecha: Yup.string()
-        .required('La fecha es requerida'),
-    hora: Yup.string()
-        .required('La hora es requerida'),
     metodo: Yup.string()
         .required('El método de contacto es requerido')
         .oneOf(

@@ -1,55 +1,43 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Loader2, Download } from "lucide-react";
-import { toast } from "sonner";
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { prospectosService } from '@/services/prospectos.service';
-import { prospectoSchema } from '@/schemas/prospecto.schema';
-import type { ProspectoFormData } from '@/types/prospecto.types';
+import {useState} from 'react';
+import {Button} from "@/components/ui/button";
+import {Loader2} from "lucide-react";
+import {toast} from "sonner";
+import {Formik, Form, Field, ErrorMessage} from 'formik';
+import {prospectosService} from '@/services/prospectos.service';
+import {prospectoSchema} from '@/schemas/prospecto.schema';
+import type {ProspectoFormData} from '@/types/prospecto.types';
 
 interface ProspectoFormProps {
     idPersonas: number;
 }
 
-export default function ProspectoForm({ idPersonas }: ProspectoFormProps) {
-    const [descargaCompleta, setDescargaCompleta] = useState(false);
+export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
+    const [citaAgendada, setCitaAgendada] = useState(false);
 
     const initialValues: ProspectoFormData = {
         empresa: '',
         giro: '',
         empleados: 0,
-        fecha: '',
-        hora: '',
         metodo: '',
     };
 
-    const handleSubmit = async (values: ProspectoFormData, { setSubmitting }: any) => {
+    const handleSubmit = async (values: ProspectoFormData, {setSubmitting}: any) => {
         try {
-            await prospectosService.create(idPersonas, values);
+            const now = new Date();
+
+            const fecha = now.toISOString().split('T')[0];
+
+            const hora = now.toTimeString().split(' ')[0].substring(0, 5);
+
+            const prospectoData = {
+                ...values,
+                fecha,
+                hora
+            };
+
+            await prospectosService.create(idPersonas, prospectoData);
             toast.success('¡Cita agendada exitosamente!');
-
-            // Obtener datos del recurso de sessionStorage
-            const recursoArchivo = sessionStorage.getItem('recursoArchivo');
-            const recursoNombre = sessionStorage.getItem('recursoNombre');
-            const recursoFormato = sessionStorage.getItem('recursoFormato');
-
-            // Descargar el archivo
-            if (recursoArchivo && recursoNombre && recursoFormato) {
-                const link = document.createElement('a');
-                link.href = recursoArchivo;
-                link.download = `${recursoNombre}.${recursoFormato}`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                // Limpiar sessionStorage
-                sessionStorage.removeItem('recursoArchivo');
-                sessionStorage.removeItem('recursoNombre');
-                sessionStorage.removeItem('recursoFormato');
-
-                setDescargaCompleta(true);
-                toast.success('¡Tu descarga ha comenzado!');
-            }
+            setCitaAgendada(true);
         } catch (error) {
             console.error('Error al crear prospecto:', error);
             toast.error('Error al agendar tu cita. Por favor intenta de nuevo.');
@@ -58,26 +46,28 @@ export default function ProspectoForm({ idPersonas }: ProspectoFormProps) {
         }
     };
 
-    if (descargaCompleta) {
+    if (citaAgendada) {
         return (
             <div className="text-center py-12">
                 <div className="mb-6">
-                    <svg className="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg className="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                    ¡Todo listo!
+                    ¡Cita agendada exitosamente!
                 </h3>
                 <p className="text-gray-600 mb-4">
-                    Tu cita ha sido agendada y tu descarga ha comenzado.
+                    Nuestro equipo se pondrá en contacto contigo pronto.
                 </p>
-                <p className="text-gray-600">
-                    Nos pondremos en contacto contigo pronto.
+                <p className="text-gray-600 mb-6">
+                    Recibirás una confirmación por correo electrónico.
                 </p>
                 <Button
                     onClick={() => window.location.href = '/'}
-                    className="mt-6 bg-[#7EB520] hover:bg-[#6DA018]"
+                    className="bg-[#7EB520] hover:bg-[#6DA018]"
                 >
                     Volver al inicio
                 </Button>
@@ -91,7 +81,7 @@ export default function ProspectoForm({ idPersonas }: ProspectoFormProps) {
             validationSchema={prospectoSchema}
             onSubmit={handleSubmit}
         >
-            {({ isSubmitting }) => (
+            {({isSubmitting}) => (
                 <Form className="space-y-4">
                     {/* Empresa */}
                     <div className="space-y-2">
@@ -152,44 +142,6 @@ export default function ProspectoForm({ idPersonas }: ProspectoFormProps) {
                         </div>
                     </div>
 
-                    {/* Fecha y Hora en grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label htmlFor="fecha" className="text-sm font-medium">
-                                Fecha <span className="text-red-600">*</span>
-                            </label>
-                            <Field
-                                id="fecha"
-                                name="fecha"
-                                type="date"
-                                className="w-full px-3 py-2 border rounded-md"
-                                min={new Date().toISOString().split('T')[0]}
-                            />
-                            <ErrorMessage
-                                name="fecha"
-                                component="p"
-                                className="text-sm text-red-600"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="hora" className="text-sm font-medium">
-                                Hora <span className="text-red-600">*</span>
-                            </label>
-                            <Field
-                                id="hora"
-                                name="hora"
-                                type="time"
-                                className="w-full px-3 py-2 border rounded-md"
-                            />
-                            <ErrorMessage
-                                name="hora"
-                                component="p"
-                                className="text-sm text-red-600"
-                            />
-                        </div>
-                    </div>
-
                     {/* Método de contacto */}
                     <div className="space-y-2">
                         <label htmlFor="metodo" className="text-sm font-medium">
@@ -226,13 +178,11 @@ export default function ProspectoForm({ idPersonas }: ProspectoFormProps) {
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                Procesando...
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin"/>
+                                Enviando Datos...
                             </>
                         ) : (
-                            <>
-                                Enviar Datos
-                            </>
+                            'Enviar Datos'
                         )}
                     </Button>
                 </Form>

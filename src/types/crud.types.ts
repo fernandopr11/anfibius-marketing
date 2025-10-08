@@ -24,12 +24,23 @@ export interface FormField {
     className?: string;
 }
 
+// NUEVO: Definición de filtros
+export interface FilterField {
+    name: string;
+    label: string;
+    type: 'select' | 'text' | 'number' | 'date';
+    placeholder?: string;
+    options?: { value: string | number; label: string }[];
+    fetchOptions?: () => Promise<{ value: string | number; label: string }[]>;
+}
 
 export interface CRUDService<T extends BaseEntity> {
     getAll: () => Promise<T[]>;
     create: (data: any) => Promise<T>;
     update: (id: number, data: any) => Promise<T>;
     delete: (id: number) => Promise<void>;
+    // NUEVO: Método opcional para filtrar
+    getFiltered?: (filters: Record<string, any>) => Promise<T[]>;
 }
 
 export interface CRUDConfig<T extends BaseEntity> {
@@ -45,6 +56,7 @@ export interface CRUDConfig<T extends BaseEntity> {
         title: (item: T) => React.ReactNode;
         description: (item: T) => React.ReactNode;
     };
+    filters?: FilterField[];
 }
 
 export interface PaginationConfig {
