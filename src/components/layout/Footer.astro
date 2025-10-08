@@ -1,0 +1,34 @@
+---
+import {DownloadButton} from "@/components/common/DownloadButton";
+
+interface Props {
+    showDownloadButton?: boolean;
+    idPublicacion?: number;
+    nombrePublicacion?: string;
+    recurso?: any;
+}
+
+const {showDownloadButton = false, idPublicacion, nombrePublicacion, recurso} = Astro.props;
+---
+
+<footer class="text-white">
+    <div class="bg-[#005873] py-8">
+        <div class="container mx-auto px-4 text-center">
+            {showDownloadButton && recurso && idPublicacion && nombrePublicacion ? (
+                    <DownloadButton
+                            idPublicacion={idPublicacion}
+                            nombrePublicacion={nombrePublicacion}
+                            recurso={recurso}
+                            client:load
+                    />
+            ) : (
+                    <div></div>
+            )}
+        </div>
+    </div>
+    <div class="bg-[#042a46] py-4">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-300">
+            © Todos los derechos reservados para Corporación Anfibius CIA. LTDA 2025
+        </div>
+    </div>
+</footer>

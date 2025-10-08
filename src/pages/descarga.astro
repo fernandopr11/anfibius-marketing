@@ -1,0 +1,143 @@
+---
+import '../styles/global.css';
+import {Image} from 'astro:assets';
+import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
+import ProspectoForm from '@/components/common/ProspectoForm';
+import {decryptFromUrl} from '@/lib/crypto';
+import {Button} from '@/components/ui/button';
+
+// Obtener y desencriptar el token de la URL
+const url = new URL(Astro.request.url);
+const token = url.searchParams.get('token');
+
+// Si no hay token, redirigir al home
+if (!token) {
+    return Astro.redirect('/');
+}
+
+// Desencriptar el ID
+const idPersonasDecrypted = decryptFromUrl(token);
+
+// Si no se puede desencriptar o es inválido, redirigir al home
+if (!idPersonasDecrypted || isNaN(parseInt(idPersonasDecrypted))) {
+    return Astro.redirect('/');
+}
+
+const idPersonas = parseInt(idPersonasDecrypted);
+---
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>¡Ya puedes comenzar! - Anfibius</title>
+</head>
+<body>
+<header class="w-full py-6 bg-white">
+    <div class="container mx-auto px-4 flex justify-center">
+        <a href="/">
+            <Image
+                    src={logoAnfivius}
+                    alt="Logo Anfibius"
+                    width={250}
+                    height={500}
+                    class="h-auto"
+            />
+        </a>
+    </div>
+</header>
+
+<main class="min-h-screen py-12 ">
+    <div class="container mx-auto px-4 max-w-5xl">
+
+        <!-- Sección de bienvenida -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#042a46] mb-4">
+                ¡Ya puedes comenzar!
+            </h1>
+            <p class="text-lg text-gray-600 mb-2">
+                La <strong>Guía rápida para contadores al momento de elegir un software contable</strong> está
+                disponible para ti.
+            </p>
+            <p class="text-base text-gray-600 mb-6">
+                Descárgala aquí cuando lo necesites.
+            </p>
+
+            <!-- Botón de descarga directa -->
+            <div class="flex justify-center">
+                <button
+                        id="btnDescargarDirecto"
+                        class="bg-[#7EB520] hover:bg-[#6DA018] text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors shadow-md hover:shadow-lg"
+                >
+                    Descárgala ahora
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección de información de Anfibius -->
+        <div class="bg-[#042a46] text-white rounded-lg p-8 mb-12 text-center">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">
+                Anfibius integra todo: software contable, ventas, servicios y CRM.
+            </h2>
+            <p class="text-base mb-6">
+                Empieza hoy
+            </p>
+        </div>
+
+        <div class="mb-8 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                ¡Solicita una llamada con nuestros expertos!
+            </h2>
+            <p class="text-gray-600 mb-4">
+                ¿Quieres poner en marcha tu contabilidad de forma ágil y sencilla?
+            </p>
+            <p class="text-gray-700 mb-4">
+                Descubre cómo los planes de Anfibius pueden ayudarte a optimizar tu gestión.
+            </p>
+            <p class="text-gray-700">
+                <span class="text-[#7EB520] text-xl">📅</span>
+                <span>Agenda una cita directa con uno de nuestros especialistas y resuelve todas tus dudas.</span>
+            </p>
+        </div>
+
+        <!-- Sección de formulario (OPCIONAL) -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-12">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Agendar cita</h3>
+            <ProspectoForm idPersonas={idPersonas} client:load/>
+        </div>
+
+        <!-- Nota de privacidad -->
+        <div class="text-center text-sm text-gray-600 max-w-3xl mx-auto">
+            <p class="mb-2">
+                En Anfibius, valoramos y protegemos tu información personal. Los datos que compartas con nosotros
+                serán utilizados únicamente para enviarte comunicaciones relacionadas con nuestros servicios y
+                productos.
+            </p>
+            <p>
+                Tienes el derecho de darte de baja en cualquier momento.
+                Para más información sobre el tratamiento de tus datos en Anfibius, consulta nuestra
+                <a href="https://anfibius.net/politicas/" target="_blank" class="text-[#7EB520] hover:underline">Política de Privacidad</a>.
+            </p>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.getElementById('btnDescargarDirecto')?.addEventListener('click', () => {
+        const recursoArchivo = sessionStorage.getItem('recursoArchivo');
+        const recursoNombre = sessionStorage.getItem('recursoNombre');
+        const recursoFormato = sessionStorage.getItem('recursoFormato');
+
+        if (recursoArchivo && recursoNombre && recursoFormato) {
+            const link = document.createElement('a');
+            link.href = recursoArchivo;
+            link.download = `${recursoNombre}.${recursoFormato}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            window.location.href = '/';
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import LeadsComponent from '@/components/admin/leads/LeadsComponents';
+---
+
+<ProtectedRoute client:only="react">
+    <AdminLayout title="Leads">
+        <LeadsComponent client:load />
+    </AdminLayout>
+</ProtectedRoute>

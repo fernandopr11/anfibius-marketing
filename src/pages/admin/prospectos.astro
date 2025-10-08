@@ -1,0 +1,11 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import ProspectoComponent from "@/components/admin/prospects/ProspectosComponent.tsx";
+---
+
+<ProtectedRoute client:only="react">
+    <AdminLayout title="Prospectos">
+        <ProspectoComponent client:load />
+    </AdminLayout>
+</ProtectedRoute>

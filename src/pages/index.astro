@@ -4,7 +4,7 @@ import {Button} from "@/components/ui/button"
 import {Star, UtensilsCrossed, HandCoins, Calculator, TrendingUp, Users} from "lucide-react"
 import {Image} from 'astro:assets';
 import empleado from '@/images/hero/empleado.jpg';
-import Footer from "@/components/Footer.astro";
+import Footer from "@/components/layout/Footer.astro";
 import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
 ---
 
@@ -26,7 +26,7 @@ import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
         />
     </div>
 </header>
-<main class="min-h-screen bg-background">
+<main class="bg-background">
     <section class="container mx-auto px-4 py-12 md:py-10">
         <div class="grid gap-12 md:grid-cols-2 items-start max-w-6xl mx-auto">
             <div class="space-y-6 text-center md:text-left order-2 md:order-1">
@@ -126,8 +126,6 @@ import logoAnfivius from '@/images/hero/LogoHorizontal.svg';
             </div>
         </div>
     </section>
-
-
 </main>
 <Footer></Footer>
 </body>
