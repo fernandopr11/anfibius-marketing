@@ -1,13 +1,14 @@
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
-import {Loader2, ArrowRight} from "lucide-react";
-import {toast} from "sonner";
-import {Formik, Form, Field, ErrorMessage} from 'formik';
-import {leadsService} from '@/services/leads.service';
-import {leadSchema} from '@/schemas/lead.schema';
-import {encryptForUrl} from '@/lib/crypto';
-import type {LeadFormData} from '@/types/lead.types';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { leadsService } from '@/services/leads.service';
+import { leadSchema } from '@/schemas/lead.schema';
+import { encryptForUrl } from '@/lib/crypto';
+import { geoService } from '@/lib/geo-data';
+import type { LeadFormData } from '@/types/lead.types';
 
 interface LeadModalProps {
     open: boolean;
@@ -28,12 +29,34 @@ export function LeadModal({
                               recursoNombre,
                               recursoFormato
                           }: LeadModalProps) {
+    // Estados para manejar provincias y cantones
+    const [provincias, setProvincias] = useState<Array<{ value: string; label: string }>>([]);
+    const [cantones, setCantones] = useState<Array<{ value: string; label: string }>>([]);
+    const [selectedProvincia, setSelectedProvincia] = useState<string>('');
+
     // Guardar la ruta de origen al abrir el modal, solo si no existe
     useEffect(() => {
         if (open && !sessionStorage.getItem('rutaOrigen')) {
             sessionStorage.setItem('rutaOrigen', window.location.pathname);
         }
     }, [open]);
+
+    // Cargar provincias al montar el componente
+    useEffect(() => {
+        const provinciasData = geoService.getProvincias();
+        setProvincias(provinciasData);
+    }, []);
+
+    // Manejar cambio de provincia
+    const handleProvinciaChange = (provincia: string, setFieldValue: any) => {
+        setSelectedProvincia(provincia);
+        setFieldValue('provincia', provincia);
+        setFieldValue('ciudad', ''); // Reset ciudad
+
+        // Cargar cantones de la provincia seleccionada
+        const cantonesData = geoService.getCantonesByProvincia(provincia);
+        setCantones(cantonesData);
+    };
 
     const initialValues: LeadFormData = {
         cedula: '',
@@ -45,7 +68,7 @@ export function LeadModal({
         provincia: '',
     };
 
-    const handleSubmit = async (values: LeadFormData, {setSubmitting}: any) => {
+    const handleSubmit = async (values: LeadFormData, { setSubmitting }: any) => {
         try {
             const leadCreado = await leadsService.create(idPublicacion, values);
             toast.success('¡Datos registrados! Ahora agenda tu cita.');
@@ -86,7 +109,7 @@ export function LeadModal({
                     validationSchema={leadSchema}
                     onSubmit={handleSubmit}
                 >
-                    {({isSubmitting}) => (
+                    {({ isSubmitting, setFieldValue, values }) => (
                         <Form className="space-y-4">
                             {/* Cédula */}
                             <div className="space-y-2">
@@ -181,37 +204,59 @@ export function LeadModal({
                                 />
                             </div>
 
-                            {/* Ciudad y Provincia en grid */}
+                            {/* Provincia y Ciudad en grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label htmlFor="ciudad" className="text-sm font-medium">
-                                        Ciudad <span className="text-red-600">*</span>
-                                    </label>
-                                    <Field
-                                        id="ciudad"
-                                        name="ciudad"
-                                        type="text"
-                                        className="w-full px-3 py-2 border rounded-md"
-                                    />
-                                    <ErrorMessage
-                                        name="ciudad"
-                                        component="p"
-                                        className="text-sm text-red-600"
-                                    />
-                                </div>
-
+                                {/* Provincia */}
                                 <div className="space-y-2">
                                     <label htmlFor="provincia" className="text-sm font-medium">
                                         Provincia <span className="text-red-600">*</span>
                                     </label>
                                     <Field
+                                        as="select"
                                         id="provincia"
                                         name="provincia"
-                                        type="text"
                                         className="w-full px-3 py-2 border rounded-md"
-                                    />
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                            handleProvinciaChange(e.target.value, setFieldValue);
+                                        }}
+                                    >
+                                        <option value="">Seleccionar provincia...</option>
+                                        {provincias.map((prov) => (
+                                            <option key={prov.value} value={prov.value}>
+                                                {prov.label}
+                                            </option>
+                                        ))}
+                                    </Field>
                                     <ErrorMessage
                                         name="provincia"
+                                        component="p"
+                                        className="text-sm text-red-600"
+                                    />
+                                </div>
+
+                                {/* Ciudad/Cantón */}
+                                <div className="space-y-2">
+                                    <label htmlFor="ciudad" className="text-sm font-medium">
+                                        Ciudad <span className="text-red-600">*</span>
+                                    </label>
+                                    <Field
+                                        as="select"
+                                        id="ciudad"
+                                        name="ciudad"
+                                        className="w-full px-3 py-2 border rounded-md"
+                                        disabled={!selectedProvincia}
+                                    >
+                                        <option value="">
+                                            {selectedProvincia ? 'Seleccionar ciudad...' : 'Seleccione una provincia'}
+                                        </option>
+                                        {cantones.map((canton) => (
+                                            <option key={canton.value} value={canton.value}>
+                                                {canton.label}
+                                            </option>
+                                        ))}
+                                    </Field>
+                                    <ErrorMessage
+                                        name="ciudad"
                                         component="p"
                                         className="text-sm text-red-600"
                                     />
@@ -235,12 +280,12 @@ export function LeadModal({
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                             Procesando...
                                         </>
                                     ) : (
                                         <>
-                                            <ArrowRight className="w-4 h-4 mr-2"/>
+                                            <ArrowRight className="w-4 h-4 mr-2" />
                                             Continuar
                                         </>
                                     )}

@@ -18,12 +18,12 @@ interface CRUDManagerProps<T extends BaseEntity> {
 }
 
 export default function CRUDManager<T extends BaseEntity>({
-    config,
-    className = '',
-    ViewComponent,
-    FileManageComponent,
-    readOnly = false,
-}: CRUDManagerProps<T>) {
+                                                              config,
+                                                              className = '',
+                                                              ViewComponent,
+                                                              FileManageComponent,
+                                                              readOnly = false,
+                                                          }: CRUDManagerProps<T>) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +35,16 @@ export default function CRUDManager<T extends BaseEntity>({
     const [fileManageItem, setFileManageItem] = useState<T | null>(null);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+
+    // Determinar qué acciones están habilitadas
+    const actions = readOnly
+        ? { canCreate: false, canEdit: false, canDelete: false, canView: true }
+        : {
+            canCreate: config.customActions?.canCreate ?? true,
+            canEdit: config.customActions?.canEdit ?? true,
+            canDelete: config.customActions?.canDelete ?? true,
+            canView: config.customActions?.canView ?? !!ViewComponent,
+        };
 
     const fetchData = async (filters?: Record<string, any>) => {
         try {
@@ -110,9 +120,7 @@ export default function CRUDManager<T extends BaseEntity>({
     const handleSubmit = async (values: any) => {
         try {
             if (selectedItem?.id) {
-
                 await config.service.update(selectedItem.id, values);
-
                 toast.success(`${config.singularName} actualizado correctamente`);
             } else {
                 await config.service.create(values);
@@ -144,7 +152,7 @@ export default function CRUDManager<T extends BaseEntity>({
         <div className={`space-y-4 ${className}`}>
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">{config.title}</h2>
-                {!readOnly && (
+                {actions.canCreate && (
                     <Button onClick={handleCreate} className="bg-[#005873] hover:bg-[#7EB520]">
                         <Plus className="w-4 h-4 mr-2" />
                         {config.actionName} {config.singularName}
@@ -163,11 +171,11 @@ export default function CRUDManager<T extends BaseEntity>({
             <DataTable
                 data={data}
                 columns={config.columns}
-                onEdit={handleEdit}
-                onDelete={handleDeleteClick}
-                onView={ViewComponent ? handleView : undefined}
-                onManageFiles={!readOnly && FileManageComponent ? handleManageFiles : undefined}
-                emptyMessage={`No hay ${config.title.toLowerCase()}. ${!readOnly ? 'Crea uno nuevo.' : ''}`}
+                onEdit={actions.canEdit ? handleEdit : undefined}
+                onDelete={actions.canDelete ? handleDeleteClick : undefined}
+                onView={actions.canView ? handleView : undefined}
+                onManageFiles={actions.canEdit && FileManageComponent ? handleManageFiles : undefined}
+                emptyMessage={`No hay ${config.title.toLowerCase()}. ${actions.canCreate ? 'Crea uno nuevo.' : ''}`}
                 viewMode={config.viewMode}
                 cardConfig={config.cardConfig}
                 readOnly={readOnly}

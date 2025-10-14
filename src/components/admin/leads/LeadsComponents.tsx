@@ -81,14 +81,19 @@ const leadConfig: CRUDConfig<Lead> = {
             type: 'text',
             placeholder: 'Buscar por cedula...'
         },
-    ]
+    ],
+    customActions: {  // ← AGREGADO
+        canCreate: false,
+        canEdit: false,
+        canDelete: true,
+        canView: false,
+    }
 };
 
 export default function LeadsComponent() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [isExporting, setIsExporting] = useState(false);
 
-    // Cargar leads al montar el componente
     useEffect(() => {
         loadLeads();
     }, []);
@@ -111,7 +116,6 @@ export default function LeadsComponent() {
                 return;
             }
 
-            // Definir las columnas para la exportación
             const columns = [
                 { header: 'Publicación', accessor: (lead: Lead) => lead.publicacion?.nombre || 'N/A' },
                 { header: 'Nombres', accessor: 'nombres' as keyof Lead },
@@ -122,11 +126,9 @@ export default function LeadsComponent() {
                 { header: 'Ciudad', accessor: 'ciudad' as keyof Lead },
             ];
 
-            // Generar el nombre del archivo con la fecha actual
             const fecha = new Date().toISOString().split('T')[0];
             const filename = `leads_${fecha}`;
 
-            // Exportar
             exportToExcelWithColumns(leads, columns, filename, 'Leads');
 
             toast.success('Archivo Excel generado correctamente');
@@ -153,7 +155,6 @@ export default function LeadsComponent() {
 
             <CRUDManager<Lead>
                 config={leadConfig}
-                readOnly={true}
             />
         </div>
     );

@@ -1,62 +1,275 @@
-import { FileText, FolderOpen, Users, UserCheck } from 'lucide-react';
+import { FileText, Users, UserCheck, TrendingUp } from 'lucide-react';
+import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import ReactECharts from 'echarts-for-react';
 
 export default function DashboardContent() {
+    const metrics = useDashboardMetrics();
+
+    if (metrics.loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005873]"></div>
+            </div>
+        );
+    }
+
     const stats = [
         {
             title: 'Publicaciones',
-            value: '12',
+            value: metrics.totalPublicaciones.toString(),
             icon: FileText,
-            color: 'bg-blue-500',
-        },
-        {
-            title: 'Recursos',
-            value: '8',
-            icon: FolderOpen,
-            color: 'bg-green-500',
+            iconBgColor: 'bg-blue-100',
+            iconColor: 'text-blue-600',
+            description: 'Total de publicaciones activas',
         },
         {
             title: 'Leads',
-            value: '45',
+            value: metrics.totalLeads.toString(),
             icon: Users,
-            color: 'bg-purple-500',
+            iconBgColor: 'bg-purple-100',
+            iconColor: 'text-purple-600',
+            description: 'Total de leads registrados',
         },
         {
             title: 'Prospectos',
-            value: '23',
+            value: metrics.totalProspectos.toString(),
             icon: UserCheck,
-            color: 'bg-orange-500',
+            iconBgColor: 'bg-orange-100',
+            iconColor: 'text-orange-600',
+            description: 'Total de prospectos',
+        },
+        {
+            title: 'Tasa de Conversión',
+            value: metrics.tasaConversion,
+            icon: TrendingUp,
+            iconBgColor: 'bg-green-100',
+            iconColor: 'text-green-600',
+            description: 'Leads → Prospectos',
         },
     ];
+
+    // Configuración Gráfico 1: Barras - Leads por Publicación
+    const barChartOption = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '15%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: metrics.leadsPorPublicacion.map(item => item.nombre),
+            axisLabel: {
+                interval: 0,
+                rotate: 45,
+                fontSize: 11
+            }
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+            {
+                name: 'Leads',
+                type: 'bar',
+                data: metrics.leadsPorPublicacion.map(item => item.cantidad),
+                itemStyle: {
+                    color: '#3b82f6',
+                    borderRadius: [8, 8, 0, 0]
+                },
+                emphasis: {
+                    itemStyle: {
+                        color: '#2563eb'
+                    }
+                }
+            }
+        ]
+    };
+
+    // Configuración Gráfico 2: Línea - Prospectos por Mes
+    const lineChartOption = {
+        tooltip: {
+            trigger: 'axis'
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: metrics.prospectosPorMes.map(item => item.mes),
+            boundaryGap: false
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+            {
+                name: 'Prospectos',
+                type: 'line',
+                data: metrics.prospectosPorMes.map(item => item.cantidad),
+                smooth: true,
+                lineStyle: {
+                    color: '#f97316',
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#f97316'
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [
+                            {
+                                offset: 0,
+                                color: 'rgba(249, 115, 22, 0.3)'
+                            },
+                            {
+                                offset: 1,
+                                color: 'rgba(249, 115, 22, 0.05)'
+                            }
+                        ]
+                    }
+                },
+                emphasis: {
+                    focus: 'series'
+                }
+            }
+        ]
+    };
+
+    // Configuración Gráfico 3: Pastel - Leads por Provincia
+    const pieChartOption = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left'
+        },
+        series: [
+            {
+                name: 'Leads',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    formatter: '{b}: {c}'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: 16,
+                        fontWeight: 'bold'
+                    }
+                },
+                data: metrics.leadsPorProvincia.map((item, index) => ({
+                    value: item.cantidad,
+                    name: item.provincia,
+                    itemStyle: {
+                        color: ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#f59e0b'][index]
+                    }
+                }))
+            }
+        ]
+    };
 
     return (
         <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => (
-                    <div
-                        key={stat.title}
-                        className="bg-white rounded-lg shadow p-6 flex items-center gap-4"
-                    >
-                        <div className={`${stat.color} p-3 rounded-lg`}>
-                            <stat.icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">{stat.title}</p>
-                            <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                        </div>
-                    </div>
+                    <Card key={stat.title} className="border-border/50 hover:shadow-md transition-shadow">
+                        <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                                        {stat.title}
+                                    </p>
+                                    <p className="text-3xl font-bold text-foreground mb-2">
+                                        {stat.value}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {stat.description}
+                                    </p>
+                                </div>
+                                <div className={cn("rounded-lg p-3", stat.iconBgColor)}>
+                                    <stat.icon className={cn("w-6 h-6", stat.iconColor)} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
 
-            {/* Welcome Card */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-2">
-                    Bienvenido al Panel de Administración
-                </h2>
-                <p className="text-gray-600">
-                    Gestiona tus publicaciones, recursos, leads y prospectos desde aquí.
-                </p>
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico 1: Leads por Publicación */}
+                <Card className="border-border/50">
+                    <CardHeader>
+                        <CardTitle className="text-base font-medium">Leads por Publicación</CardTitle>
+                        <CardDescription>Top 5 publicaciones con más leads</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ReactECharts
+                            option={barChartOption}
+                            style={{ height: '300px' }}
+                            opts={{ renderer: 'svg' }}
+                        />
+                    </CardContent>
+                </Card>
+
+                {/* Gráfico 2: Prospectos por Mes */}
+                <Card className="border-border/50">
+                    <CardHeader>
+                        <CardTitle className="text-base font-medium">Tendencia de Prospectos</CardTitle>
+                        <CardDescription>Últimos 6 meses</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ReactECharts
+                            option={lineChartOption}
+                            style={{ height: '300px' }}
+                            opts={{ renderer: 'svg' }}
+                        />
+                    </CardContent>
+                </Card>
             </div>
+
+            {/* Gráfico 3: Leads por Provincia */}
+            <Card className="border-border/50">
+                <CardHeader>
+                    <CardTitle className="text-base font-medium">Distribución Geográfica</CardTitle>
+                    <CardDescription>Top 5 provincias con más leads</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ReactECharts
+                        option={pieChartOption}
+                        style={{ height: '350px' }}
+                        opts={{ renderer: 'svg' }}
+                    />
+                </CardContent>
+            </Card>
         </div>
     );
 }
