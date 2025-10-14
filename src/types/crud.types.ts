@@ -57,6 +57,12 @@ export interface CRUDConfig<T extends BaseEntity> {
         description: (item: T) => React.ReactNode;
     };
     filters?: FilterField[];
+    customActions?: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+        canView?: boolean;
+    };
 }
 
 export interface PaginationConfig {

@@ -64,8 +64,7 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                 </p>
                 <Button
                     onClick={() => {
-                        const ruta = sessionStorage.getItem('rutaOrigen') || '/';
-                        window.location.href = ruta;
+                        window.location.href = 'https://anfibius.net/';
                     }}
                     className="bg-[#7EB520] hover:bg-[#6DA018]"
                 >
@@ -153,8 +152,6 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                         >
                             <option value="">Seleccionar...</option>
                             <option value="Llamada telefónica">Llamada telefónica</option>
-                            <option value="Videollamada">Videollamada</option>
-                            <option value="Presencial">Presencial</option>
                         </Field>
                         <ErrorMessage
                             name="metodo"
@@ -176,7 +173,7 @@ export default function ProspectoForm({idPersonas}: ProspectoFormProps) {
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin"/>
+                                <Loader2 className="w- h-5 mr-2 animate-spin"/>
                                 Enviando Datos...
                             </>
                         ) : (

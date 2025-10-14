@@ -86,7 +86,22 @@ export const leadsService = {
         throw new Error('Método no implementado');
     },
 
+    /*
+    * Eliminar un lead por ID
+    * @param id
+     */
     async delete(id: number): Promise<void> {
-        throw new Error('Método no implementado');
-    },
+        const token = storage.getToken();
+
+        const response = await fetch(`${API_URL}/leads/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al eliminar lead');
+        }
+    }
 };

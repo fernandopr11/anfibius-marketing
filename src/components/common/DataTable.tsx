@@ -36,8 +36,8 @@ type ViewMode = 'table' | 'cards';
 interface DataTableProps<T extends BaseEntity> {
     data: T[];
     columns: Column<T>[];
-    onEdit: (item: T) => void;
-    onDelete: (id: number) => void;
+    onEdit?: (item: T) => void;
+    onDelete?: (id: number) => void;
     onView?: (item: T) => void;
     onManageFiles?: (item: T) => void;
     emptyMessage?: string;
@@ -129,6 +129,9 @@ export default function DataTable<T extends BaseEntity>({
         );
     };
 
+    // Verificar si hay alguna acción disponible
+    const hasActions = !readOnly && (onView || onManageFiles || onEdit || onDelete);
+
     const renderCards = () => {
         if (!cardConfig) return null;
 
@@ -153,74 +156,80 @@ export default function DataTable<T extends BaseEntity>({
                                         {cardConfig.description(item)}
                                     </p>
                                 </div>
-                                <div className="flex gap-1 ml-4">
-                                    <TooltipProvider>
-                                        {onView && (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => onView(item)}
-                                                        className="h-8 w-8 p-0 hover:bg-blue-50"
-                                                    >
-                                                        <Eye className="w-4 h-4 text-blue-600"/>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Ver detalles</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )}
-                                        {onManageFiles && (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => onManageFiles(item)}
-                                                        className="h-8 w-8 p-0 hover:bg-green-50"
-                                                    >
-                                                        <FolderOpen className="w-4 h-4 text-green-600"/>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Gestionar recursos</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )}
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => onEdit(item)}
-                                                    className="h-8 w-8 p-0 hover:bg-yellow-50"
-                                                >
-                                                    <Pencil className="w-4 h-4 text-yellow-600"/>
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Editar</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => item.id && onDelete(item.id)}
-                                                    className="h-8 w-8 p-0 hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-red-600"/>
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Eliminar</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </div>
+                                {hasActions && (
+                                    <div className="flex gap-1 ml-4">
+                                        <TooltipProvider>
+                                            {onView && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => onView(item)}
+                                                            className="h-8 w-8 p-0 hover:bg-blue-50"
+                                                        >
+                                                            <Eye className="w-4 h-4 text-blue-600"/>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Ver detalles</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                            {onManageFiles && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => onManageFiles(item)}
+                                                            className="h-8 w-8 p-0 hover:bg-green-50"
+                                                        >
+                                                            <FolderOpen className="w-4 h-4 text-green-600"/>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Gestionar recursos</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                            {onEdit && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => onEdit(item)}
+                                                            className="h-8 w-8 p-0 hover:bg-yellow-50"
+                                                        >
+                                                            <Pencil className="w-4 h-4 text-yellow-600"/>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Editar</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                            {onDelete && item.id && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => onDelete(item.id!)}
+                                                            className="h-8 w-8 p-0 hover:bg-red-50"
+                                                        >
+                                                            <Trash2 className="w-4 h-4 text-red-600"/>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Eliminar</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        </TooltipProvider>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))
@@ -240,7 +249,7 @@ export default function DataTable<T extends BaseEntity>({
                                     {column.header}
                                 </TableHead>
                             ))}
-                            {!readOnly && <TableHead className="text-right">Acciones</TableHead>}
+                            {hasActions && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
 
@@ -248,7 +257,7 @@ export default function DataTable<T extends BaseEntity>({
                         {currentData.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={columns.length + 1}
+                                    colSpan={columns.length + (hasActions ? 1 : 0)}
                                     className="text-center py-8 text-gray-500"
                                 >
                                     {emptyMessage}
@@ -262,7 +271,7 @@ export default function DataTable<T extends BaseEntity>({
                                             {getCellValue(item, column)}
                                         </TableCell>
                                     ))}
-                                    {!readOnly && (
+                                    {hasActions && (
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -283,16 +292,20 @@ export default function DataTable<T extends BaseEntity>({
                                                             Recursos
                                                         </DropdownMenuItem>
                                                     )}
-                                                    <DropdownMenuItem onClick={() => onEdit(item)}>
-                                                        <Pencil className="mr-2 h-4 w-4 text-yellow-600"/>
-                                                        Editar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => item.id && onDelete(item.id)}
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4 text-red-600"/>
-                                                        Eliminar
-                                                    </DropdownMenuItem>
+                                                    {onEdit && (
+                                                        <DropdownMenuItem onClick={() => onEdit(item)}>
+                                                            <Pencil className="mr-2 h-4 w-4 text-yellow-600"/>
+                                                            Editar
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {onDelete && item.id && (
+                                                        <DropdownMenuItem
+                                                            onClick={() => onDelete(item.id!)}
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4 text-red-600"/>
+                                                            Eliminar
+                                                        </DropdownMenuItem>
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
