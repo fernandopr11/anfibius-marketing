@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { Loader2, Trash2, Download, FileText } from "lucide-react";
+import { Loader2, Trash2, Download, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import FileUpload from '@/components/common/FileUpload.tsx';
@@ -22,7 +22,6 @@ export function RecursoModal({ open, onOpenChange, publicacion }: RecursoModalPr
     const [loading, setLoading] = useState(true);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    // Cargar el recurso cuando se abre el modal
     useEffect(() => {
         if (open && publicacion.id) {
             loadRecurso();
@@ -45,11 +44,9 @@ export function RecursoModal({ open, onOpenChange, publicacion }: RecursoModalPr
     const handleSubmit = async (values: any, { setSubmitting }: any) => {
         try {
             if (recurso?.id) {
-                // Actualizar recurso existente
                 await recursosService.update(recurso.id, values);
                 toast.success('Recurso actualizado correctamente');
             } else {
-                // Crear nuevo recurso
                 await recursosService.create(publicacion.id!, values);
                 toast.success('Recurso creado correctamente');
             }
@@ -78,7 +75,6 @@ export function RecursoModal({ open, onOpenChange, publicacion }: RecursoModalPr
 
     const handleDownload = () => {
         if (!recurso) return;
-
         const link = document.createElement('a');
         link.href = recurso.archivo;
         link.download = `${recurso.nombre}.${recurso.formato}`;
@@ -93,138 +89,182 @@ export function RecursoModal({ open, onOpenChange, publicacion }: RecursoModalPr
         archivo: recurso?.archivo || '',
     };
 
+    if (!open) return null;
+
     return (
         <>
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {recurso ? 'Editar Recurso' : 'Nuevo Recurso'} - {publicacion.nombre}
-                        </DialogTitle>
-                    </DialogHeader>
+            {/* Backdrop */}
+            <div 
+                className="fixed inset-0 bg-black/50 z-50"
+                onClick={() => onOpenChange(false)}
+            />
 
-                    {loading ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div 
+                    className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900">
+                                {recurso ? 'Editar Recurso' : 'Nuevo Recurso'}
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {publicacion.nombre}
+                            </p>
                         </div>
-                    ) : (
-                        <>
-                            {/* Preview del archivo existente */}
-                            {recurso && (
-                                <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
-                                    <p className="text-sm font-medium text-gray-700 mb-3">Archivo actual:</p>
-                                    <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="p-2 rounded-lg bg-blue-50">
-                                                <FileText className="h-5 w-5 text-blue-600" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-sm truncate">{recurso.nombre}</p>
-                                                <p className="text-xs text-gray-500 uppercase">{recurso.formato}</p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleDownload}
-                                            className="ml-3"
-                                        >
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Descargar
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                        <button
+                            onClick={() => onOpenChange(false)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
 
-                            <Formik
-                                initialValues={initialValues}
-                                validationSchema={recursoSchema}
-                                onSubmit={handleSubmit}
-                                enableReinitialize
-                            >
-                                {({ isSubmitting, setFieldValue, values }) => (
-                                    <Form className="space-y-4">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium">Nombre del recurso</label>
-                                            <Field
-                                                name="nombre"
-                                                type="text"
-                                                className="w-full px-3 py-2 border rounded-md"
-                                                placeholder="Ej: Guía completa de contabilidad"
-                                            />
-                                            <ErrorMessage
-                                                name="nombre"
-                                                component="p"
-                                                className="text-sm text-red-600"
-                                            />
-                                        </div>
-
-                                        <FileUpload
-                                            value={values.archivo}
-                                            onChange={(base64, fileName, formato) => {
-                                                setFieldValue('archivo', base64);
-                                                setFieldValue('formato', formato);
-                                                // Si no hay nombre, usar el nombre del archivo
-                                                if (!values.nombre) {
-                                                    setFieldValue('nombre', fileName.replace(/\.[^/.]+$/, ''));
-                                                }
-                                            }}
-                                            label={recurso ? "Cambiar archivo" : "Subir archivo"}
-                                        />
-                                        <ErrorMessage
-                                            name="archivo"
-                                            component="p"
-                                            className="text-sm text-red-600"
-                                        />
-
-                                        <div className="flex gap-3 justify-between pt-4">
-                                            <div>
-                                                {recurso && (
-                                                    <Button
-                                                        type="button"
-                                                        variant="destructive"
-                                                        onClick={() => setIsDeleteDialogOpen(true)}
-                                                        disabled={isSubmitting}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 mr-2" />
-                                                        Eliminar
-                                                    </Button>
-                                                )}
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <Button
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto px-6 py-4">
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                            </div>
+                        ) : (
+                            <>
+                                {/* Preview del archivo actual */}
+                                {recurso && (
+                                    <div className="mb-6">
+                                        <p className="text-sm font-medium text-gray-700 mb-3">
+                                            Archivo actual:
+                                        </p>
+                                        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className="p-2 rounded-lg bg-blue-100 shrink-0">
+                                                        <FileText className="h-5 w-5 text-blue-600" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-medium text-sm text-gray-900 truncate">
+                                                            {recurso.nombre}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 uppercase mt-0.5">
+                                                            {recurso.formato}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
                                                     type="button"
-                                                    variant="outline"
-                                                    onClick={() => onOpenChange(false)}
-                                                    disabled={isSubmitting}
+                                                    onClick={handleDownload}
+                                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shrink-0 flex items-center gap-2"
                                                 >
-                                                    Cancelar
-                                                </Button>
-                                                <Button
-                                                    type="submit"
-                                                    className="bg-[#005873] hover:bg-[#7EB520]"
-                                                    disabled={isSubmitting}
-                                                >
-                                                    {isSubmitting ? (
-                                                        <>
-                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                            Guardando...
-                                                        </>
-                                                    ) : (
-                                                        'Guardar'
-                                                    )}
-                                                </Button>
+                                                    <Download className="h-4 w-4" />
+                                                    Descargar
+                                                </button>
                                             </div>
                                         </div>
-                                    </Form>
+                                    </div>
                                 )}
-                            </Formik>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
 
+                                {/* Formulario */}
+                                <Formik
+                                    initialValues={initialValues}
+                                    validationSchema={recursoSchema}
+                                    onSubmit={handleSubmit}
+                                    enableReinitialize
+                                >
+                                    {({ isSubmitting, setFieldValue, values }) => (
+                                        <Form className="space-y-5">
+                                            {/* Nombre del recurso */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Nombre del recurso
+                                                </label>
+                                                <Field
+                                                    name="nombre"
+                                                    type="text"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005873] focus:border-transparent"
+                                                    placeholder="Ej: Guía completa de contabilidad"
+                                                />
+                                                <ErrorMessage
+                                                    name="nombre"
+                                                    component="p"
+                                                    className="text-sm text-red-600 mt-1"
+                                                />
+                                            </div>
+
+                                            {/* Upload de archivo */}
+                                            <div>
+                                                <FileUpload
+                                                    value={values.archivo}
+                                                    onChange={(base64, fileName, formato) => {
+                                                        setFieldValue('archivo', base64);
+                                                        setFieldValue('formato', formato);
+                                                        if (!values.nombre) {
+                                                            setFieldValue('nombre', fileName.replace(/\.[^/.]+$/, ''));
+                                                        }
+                                                    }}
+                                                    label={recurso ? "Cambiar archivo" : "Subir archivo"}
+                                                />
+                                                <ErrorMessage
+                                                    name="archivo"
+                                                    component="p"
+                                                    className="text-sm text-red-600 mt-1"
+                                                />
+                                            </div>
+
+                                            {/* Botones de acción */}
+                                            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                                                {/* Botón eliminar */}
+                                                <div>
+                                                    {recurso && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsDeleteDialogOpen(true)}
+                                                            disabled={isSubmitting}
+                                                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Eliminar
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Botones cancelar y guardar */}
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onOpenChange(false)}
+                                                        disabled={isSubmitting}
+                                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={isSubmitting}
+                                                        className="px-4 py-2 text-sm font-medium text-white bg-[#005873] rounded-lg hover:bg-[#7EB520] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                                    >
+                                                        {isSubmitting ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                                Guardando...
+                                                            </>
+                                                        ) : (
+                                                            'Guardar'
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </Form>
+                                    )}
+                                </Formik>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Dialog de confirmación para eliminar */}
             <ConfirmDialog
                 isOpen={isDeleteDialogOpen}
                 onClose={() => setIsDeleteDialogOpen(false)}
