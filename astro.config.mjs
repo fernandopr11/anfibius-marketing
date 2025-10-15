@@ -4,11 +4,17 @@ import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'astro/config';
 import react from '@astrojs/react';
 import node from '@astrojs/node';
-
+import fs from 'fs';
 // https://astro.build/config
 export default defineConfig({
     vite: {
         plugins: [tailwindcss()],
+	server: {
+     		 https: {
+        		key: fs.readFileSync('/etc/ssl/private/anfibiusrecursos.key'),
+        		cert: fs.readFileSync('/etc/ssl/certs/anfibiusrecursos.crt')
+      		}
+    }
     },
 
     integrations: [react()],
@@ -18,7 +24,14 @@ export default defineConfig({
     adapter: node({
         mode: 'standalone' // Servidor independiente
     }),
-    
+    server: {
+    	port: 42070,
+    	host: true,
+   	 https: {
+         	key: fs.readFileSync('/etc/ssl/private/anfibiusrecursos.key'),
+        	cert: fs.readFileSync('/etc/ssl/certs/anfibiusrecursos.crt')
+    		}
+  	},
     // Configuración de build
     build: {
         assets: '_astro',
