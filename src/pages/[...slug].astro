@@ -12,66 +12,31 @@ const { slug: slugParam } = Astro.params;
 // [...slug] captura como string "path/to/page", lo convertimos
 const slug = slugParam || '';
 
-console.log('[SLUG] ============================================');
-console.log('[SLUG] Astro.params completo:', JSON.stringify(Astro.params));
-console.log('[SLUG] Astro.url.pathname:', Astro.url.pathname);
-console.log('[SLUG] slugParam recibido:', slugParam);
-console.log('[SLUG] slug procesado:', `"${slug}"`);
-console.log('[SLUG] tipo de slug:', typeof slug);
-console.log('[SLUG] ============================================');
 
 async function getPublicacionByUrl(urlSlug: string) {
     try {
         const API_URL = import.meta.env.PUBLIC_API_URL;
         const url = `${API_URL}/publicaciones/by-url/${urlSlug}`;
-        console.log('[SLUG] ============================================');
-        console.log('[SLUG] API_URL:', API_URL);
-        console.log('[SLUG] URL completa:', url);
-        console.log('[SLUG] Slug buscado:', `"${urlSlug}"`);
-        console.log('[SLUG] Longitud del slug:', urlSlug.length);
         
         const response = await fetch(url);
         
-        console.log('[SLUG] Response status:', response.status);
-        console.log('[SLUG] Response statusText:', response.statusText);
         
         // Intentar leer el body incluso si hay error
         const responseText = await response.text();
-        console.log('[SLUG] Response body:', responseText);
+
         
         if (!response.ok) {
-            console.error('[SLUG] ❌ Error en API:', response.status);
+
             return null;
         }
 
         const data = JSON.parse(responseText);
-        console.log('[SLUG] ✅ Publicación encontrada:', data?.nombre || 'SIN NOMBRE');
-        console.log('[SLUG] Datos completos:', JSON.stringify(data, null, 2));
-        console.log('[SLUG] ============================================');
         return data;
     } catch (error) {
-        console.error('[SLUG] ❌ Excepción al obtener publicación:', error);
-        console.error('[SLUG] Error message:', error instanceof Error ? error.message : String(error));
         return null;
     }
 }
 
-async function getRecursoByPublicacion(idPublicacion: number) {
-    try {
-        const API_URL = import.meta.env.PUBLIC_API_URL;
-        const response = await fetch(`${API_URL}/recursos?publicacion=${idPublicacion}`);
-
-        if (!response.ok) {
-            return null;
-        }
-
-        const recursos = await response.json();
-        return recursos.length > 0 ? recursos[0] : null;
-    } catch (error) {
-        console.error('Error al obtener recurso:', error);
-        return null;
-    }
-}
 
 // SIEMPRE renderizar la página, incluso si no hay datos
 console.log('[SLUG] Llamando a getPublicacionByUrl con:', slug);
@@ -80,17 +45,9 @@ let recurso = null;
 
 try {
     publicacion = await getPublicacionByUrl(slug);
-    console.log('[SLUG] Resultado de getPublicacionByUrl:', publicacion ? 'ENCONTRADA' : 'NO ENCONTRADA');
-    
-    if (publicacion?.id) {
-        console.log('[SLUG] ✅ Publicación encontrada, cargando recurso...');
-        recurso = await getRecursoByPublicacion(publicacion.id);
-    } else {
-        console.error('[SLUG] ❌ Publicación no encontrada para:', slug);
-        console.error('[SLUG] Renderizando página vacía con mensaje 404');
-    }
+
 } catch (error) {
-    console.error('[SLUG] ❌ Error general:', error);
+    
 }
 ---
 
@@ -143,16 +100,15 @@ try {
                     />
                 </div>
 
-                {recurso && (
+                {
                         <div class="flex justify-center md:justify-start pt-2">
                             <DownloadButton
                                     idPublicacion={publicacion.id}
                                     nombrePublicacion={publicacion.nombre}
-                                    recurso={recurso}
                                     client:load
                             />
                         </div>
-                )}
+                }
             </div>
 
             <!-- Columna Derecha: Imagen 1 con iconos decorativos -->

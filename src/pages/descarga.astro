@@ -24,6 +24,9 @@ if (!idPersonasDecrypted || isNaN(parseInt(idPersonasDecrypted))) {
 }
 
 const idPersonas = parseInt(idPersonasDecrypted);
+
+// Pasar la API_URL al cliente
+const API_URL = import.meta.env.PUBLIC_API_URL;
 ---
 <html lang="es">
 <head>
@@ -126,20 +129,84 @@ const idPersonas = parseInt(idPersonasDecrypted);
     </div>
 </main>
 
-<script>
-    document.getElementById('btnDescargarDirecto')?.addEventListener('click', () => {
-        const recursoArchivo = sessionStorage.getItem('recursoArchivo');
-        const recursoNombre = sessionStorage.getItem('recursoNombre');
-        const recursoFormato = sessionStorage.getItem('recursoFormato');
+<script define:vars={{ API_URL, }}>
+    document.getElementById('btnDescargarDirecto')?.addEventListener('click', async () => {
+        const recursoId = sessionStorage.getItem('recursoId');
 
-        if (recursoArchivo && recursoNombre && recursoFormato) {
-            const link = document.createElement('a');
-            link.href = recursoArchivo;
-            link.download = `${recursoNombre}.${recursoFormato}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        
+        if (recursoId) {
+            try {
+
+                const downloadUrl = `${API_URL}/recursos/${recursoId}/download`;
+                
+                
+                const response = await fetch(downloadUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Error al descargar el archivo');
+                }
+
+
+
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const contentType = response.headers.get('Content-Type');
+                
+                let fileName = 'descarga.pdf'; // Nombre por defecto
+                
+                if (contentDisposition) {
+
+                    // Método 1: Buscar filename= con o sin comillas
+                    let match = contentDisposition.match(/filename\*?=['"]?([^'";\n]+)['"]?/i);
+                    
+                    if (match && match[1]) {
+                        fileName = decodeURIComponent(match[1]);
+                        
+                    } else {
+                        // Método 2: Split por filename=
+                        const parts = contentDisposition.split('filename=');
+                        if (parts.length > 1) {
+                            fileName = parts[1].split(';')[0].trim().replace(/['"]/g, '');
+                            
+                        }
+                    }
+                } else {
+                    
+                    // Intentar obtener extensión del Content-Type
+                    if (contentType) {
+                        const ext = contentType.includes('pdf') ? 'pdf' : 
+                                    contentType.includes('image') ? 'jpg' :
+                                    contentType.includes('zip') ? 'zip' : 'pdf';
+                        fileName = `recurso-${recursoId}.${ext}`;
+                        
+                    }
+                }
+
+                
+
+                // Convertir la respuesta a blob
+                const blob = await response.blob();
+                
+                // Crear URL temporal para el blob
+                const url = window.URL.createObjectURL(blob);
+                
+                // Crear y hacer click en el enlace de descarga
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                
+                // Limpiar
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                
+            } catch (error) {
+                
+                alert('Error al descargar el archivo. Por favor, intenta nuevamente.');
+            }
         } else {
+            
             window.location.href = '/';
         }
     });

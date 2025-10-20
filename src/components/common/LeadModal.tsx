@@ -15,9 +15,7 @@ interface LeadModalProps {
     onOpenChange: (open: boolean) => void;
     idPublicacion: number;
     nombrePublicacion: string;
-    recursoArchivo: string;
-    recursoNombre: string;
-    recursoFormato: string;
+
 }
 
 export function LeadModal({
@@ -25,9 +23,7 @@ export function LeadModal({
                               onOpenChange,
                               idPublicacion,
                               nombrePublicacion,
-                              recursoArchivo,
-                              recursoNombre,
-                              recursoFormato
+ 
                           }: LeadModalProps) {
     // Estados para manejar provincias y cantones
     const [provincias, setProvincias] = useState<Array<{ value: string; label: string }>>([]);
@@ -73,11 +69,9 @@ export function LeadModal({
             const leadCreado = await leadsService.create(idPublicacion, values);
             toast.success('¡Datos registrados! Ahora agenda tu cita.');
             onOpenChange(false);
+            sessionStorage.setItem('recursoId', idPublicacion.toString());
 
-            // Guardar datos del recurso en sessionStorage
-            sessionStorage.setItem('recursoArchivo', recursoArchivo);
-            sessionStorage.setItem('recursoNombre', recursoNombre);
-            sessionStorage.setItem('recursoFormato', recursoFormato);
+
 
             // Encriptar el ID del lead
             const idEncriptado = encryptForUrl(leadCreado.id!.toString());

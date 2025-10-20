@@ -6,10 +6,9 @@ import type {Recurso} from '@/types/recurso.types';
 interface DownloadButtonProps {
     idPublicacion: number;
     nombrePublicacion: string;
-    recurso: Recurso;
 }
 
-export function DownloadButton({idPublicacion, nombrePublicacion, recurso}: DownloadButtonProps) {
+export function DownloadButton({idPublicacion, nombrePublicacion}: DownloadButtonProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
@@ -27,9 +26,7 @@ export function DownloadButton({idPublicacion, nombrePublicacion, recurso}: Down
                 onOpenChange={setIsModalOpen}
                 idPublicacion={idPublicacion}
                 nombrePublicacion={nombrePublicacion}
-                recursoArchivo={recurso.archivo}
-                recursoNombre={recurso.nombre}
-                recursoFormato={recurso.formato}
+
             />
         </>
     );
