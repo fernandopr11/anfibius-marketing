@@ -6,11 +6,14 @@ import type {Recurso} from '@/types/recurso.types';
 interface DownloadButtonProps {
     idPublicacion: number;
     nombrePublicacion: string;
-    recurso: Recurso;
+    recurso?: Recurso | null;
 }
 
-export function DownloadButton({idPublicacion, nombrePublicacion}: DownloadButtonProps) {
+export function DownloadButton({idPublicacion, nombrePublicacion, recurso}: DownloadButtonProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // No mostrar el botón si no hay recurso
+    if (!recurso) return null;
 
     return (
         <>

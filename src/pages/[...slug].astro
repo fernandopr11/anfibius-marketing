@@ -19,18 +19,31 @@ async function getPublicacionByUrl(urlSlug: string) {
         const url = `${API_URL}/publicaciones/by-url/${urlSlug}`;
 
         const response = await fetch(url);
-
-
-        // Intentar leer el body incluso si hay error
         const responseText = await response.text();
-
-
         if (!response.ok) {
 
             return null;
         }
 
         const data = JSON.parse(responseText);
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function getRecursoByPublicacionId(idPublicacion: number) {
+    try {
+        const API_URL = import.meta.env.PUBLIC_API_URL;
+        const url = `${API_URL}/recursos?publicacion=${idPublicacion}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = await response.json();
         return data;
     } catch (error) {
         return null;
@@ -45,6 +58,11 @@ let recurso = null;
 
 try {
     publicacion = await getPublicacionByUrl(slug);
+
+    // Si hay publicación, obtener el recurso asociado
+    if (publicacion && publicacion.id) {
+        recurso = await getRecursoByPublicacionId(publicacion.id);
+    }
 
 } catch (error) {
 
@@ -108,6 +126,7 @@ try {
                                     <DownloadButton
                                             idPublicacion={publicacion.id}
                                             nombrePublicacion={publicacion.nombre}
+                                            recurso={recurso}
                                             client:load
                                     />
                                 </div>
@@ -131,15 +150,47 @@ try {
                     </div>
                 </section>
 
+                <!-- Segunda Sección con Título 2, Texto 2 e Imagen 2 (si existe) -->
                 <section>
                     <div class="bg-gray-100 p-6 sm:p-8 md:p-12">
                         <div class="container mx-auto px-4">
-                            <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">
-                                {publicacion.titulo2}
-                            </h2>
-                            <div class="text-sm sm:text-base text-gray-700 prose prose-sm sm:prose md:prose-lg max-w-none"
-                                 set:html={publicacion.texto2}
-                            />
+                            {/* Si existe imagen2, usar layout de dos columnas */}
+                            {publicacion.imagen2 && publicacion.imagen2.trim() !== '' ? (
+                                    <div class="grid gap-8 sm:gap-12 md:grid-cols-2 items-start max-w-6xl mx-auto">
+                                        {/* Columna Izquierda: Título 2 y Texto 2 */}
+                                        <div class="space-y-4 order-2 md:order-1">
+                                            <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                                                {publicacion.titulo2}
+                                            </h2>
+                                            <div class="text-sm sm:text-base text-gray-700 prose prose-sm sm:prose md:prose-lg max-w-none"
+                                                 set:html={publicacion.texto2}
+                                            />
+                                        </div>
+
+                                        {/* Columna Derecha: Imagen 2 */}
+                                        <div class="relative min-h-[280px] sm:min-h-[320px] flex items-start justify-center order-1 md:order-2">
+                                            <div class="relative w-full max-w-[400px]">
+                                                <div class="rounded-lg overflow-hidden shadow-lg">
+                                                    <img
+                                                            src={publicacion.imagen2}
+                                                            alt={publicacion.titulo2}
+                                                            class="w-full h-auto object-cover"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            ) : (
+                                /* Si NO existe imagen2, mantener alineado a la izquierda SIN centrar */
+                                    <div class="max-w-6xl mx-auto">
+                                        <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">
+                                            {publicacion.titulo2}
+                                        </h2>
+                                        <div class="text-sm sm:text-base text-gray-700 prose prose-sm sm:prose md:prose-lg max-w-none"
+                                             set:html={publicacion.texto2}
+                                        />
+                                    </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -155,6 +206,5 @@ try {
             </>
     )}
 </main>
-
 </body>
 </html>

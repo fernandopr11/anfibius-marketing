@@ -106,8 +106,11 @@ export default function CRUDManager<T extends BaseEntity>({
 
         try {
             await config.service.delete(itemToDelete);
+
+            // Actualizar el estado local removiendo el item eliminado sin recargar toda la tabla
+            setData(prevData => prevData.filter(item => item.id !== itemToDelete));
+
             toast.success(`${config.singularName} eliminado correctamente`);
-            await fetchData(activeFilters);
         } catch (error) {
             console.error('Error al eliminar:', error);
             toast.error(`Error al eliminar ${config.singularName.toLowerCase()}`);
@@ -120,14 +123,27 @@ export default function CRUDManager<T extends BaseEntity>({
     const handleSubmit = async (values: any) => {
         try {
             if (selectedItem?.id) {
-                await config.service.update(selectedItem.id, values);
+                // Actualizar item existente
+                const updatedItem = await config.service.update(selectedItem.id, values);
+
+                // Actualizar el estado local sin recargar toda la tabla
+                setData(prevData =>
+                    prevData.map(item =>
+                        item.id === selectedItem.id ? updatedItem : item
+                    )
+                );
+
                 toast.success(`${config.singularName} actualizado correctamente`);
             } else {
-                await config.service.create(values);
+                // Crear nuevo item
+                const newItem = await config.service.create(values);
+
+                // Agregar el nuevo item al estado local sin recargar toda la tabla
+                setData(prevData => [...prevData, newItem]);
+
                 toast.success(`${config.singularName} creado correctamente`);
             }
             setIsModalOpen(false);
-            await fetchData(activeFilters);
         } catch (error) {
             console.error('Error al guardar:', error);
             toast.error(`Error al guardar ${config.singularName.toLowerCase()}`);
