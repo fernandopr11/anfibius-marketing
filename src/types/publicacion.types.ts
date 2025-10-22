@@ -7,5 +7,5 @@ export interface Publicacion {
     imagen1: string;
     titulo2: string;
     texto2: string;
-    imagen2: string;
+    imagen2: string | null;
 }

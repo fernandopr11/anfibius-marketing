@@ -6,6 +6,7 @@ import type {Recurso} from '@/types/recurso.types';
 interface DownloadButtonProps {
     idPublicacion: number;
     nombrePublicacion: string;
+    recurso: Recurso;
 }
 
 export function DownloadButton({idPublicacion, nombrePublicacion}: DownloadButtonProps) {

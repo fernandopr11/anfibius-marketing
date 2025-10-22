@@ -8,7 +8,7 @@ export const publicacionSchema = Yup.object({
     imagen1: Yup.string().required("La imagen 1 es requerida"),
     titulo2: Yup.string().required('El titulo 2 es requerido'),
     texto2: Yup.string().required('El texto 2 es requerido'),
-    imagen2: Yup.string().required("La imagen 2 es requerida"),
+    imagen2: Yup.string().nullable().notRequired()
 });
 
 export interface PublicacionFormValues {
@@ -19,5 +19,5 @@ export interface PublicacionFormValues {
     imagen1: string;
     titulo2: string;
     texto2: string;
-    imagen2: string;
+    imagen2: string | null;
 }

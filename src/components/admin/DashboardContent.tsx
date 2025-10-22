@@ -1,11 +1,86 @@
-import { FileText, Users, UserCheck, TrendingUp } from 'lucide-react';
-import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
-import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {FileText, Users, UserCheck, TrendingUp, Download} from 'lucide-react';
+import {useDashboardMetrics} from '@/hooks/useDashboardMetrics';
+import {cn} from '@/lib/utils';
+import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
 import ReactECharts from 'echarts-for-react';
+import {useCallback, useRef, useState} from 'react';
 
 export default function DashboardContent() {
     const metrics = useDashboardMetrics();
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [isExporting, setIsExporting] = useState(false);
+
+    const exportToPDF = useCallback(async () => {
+        if (!contentRef.current) return;
+
+        setIsExporting(true);
+
+        try {
+            const [{default: html2canvas}, {default: jsPDF}] = await Promise.all([
+                import('html2canvas-pro'),
+                import('jspdf')
+            ]);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const canvas = await html2canvas(contentRef.current, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: contentRef.current.scrollWidth,
+                windowHeight: contentRef.current.scrollHeight,
+                onclone: (clonedDoc) => {
+                    // Asegurar que los gráficos SVG se capturen correctamente
+                    const clonedContent = clonedDoc.querySelector('[data-export-content]');
+                    if (clonedContent) {
+                        (clonedContent as HTMLElement).style.display = 'block';
+                    }
+                }
+            });
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const imgWidth = 297;
+            const pageHeight = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let finalWidth = imgWidth;
+            let finalHeight = imgHeight;
+
+            if (imgHeight > pageHeight) {
+                finalHeight = pageHeight;
+                finalWidth = (canvas.width * pageHeight) / canvas.height;
+            }
+
+            const xOffset = (imgWidth - finalWidth) / 2;
+            const yOffset = (pageHeight - finalHeight) / 2;
+
+            pdf.addImage(
+                imgData,
+                'PNG',
+                xOffset,
+                yOffset,
+                finalWidth,
+                finalHeight,
+                undefined,
+                'FAST'
+            );
+            pdf.save(`dashboard-reporte-${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (error) {
+            console.error('Error al exportar PDF:', error);
+            alert('Error al generar el PDF. Por favor, intenta de nuevo.');
+        } finally {
+            setIsExporting(false);
+        }
+    }, []);
 
     if (metrics.loading) {
         return (
@@ -50,7 +125,6 @@ export default function DashboardContent() {
         },
     ];
 
-    // Configuración Gráfico 1: Barras - Leads por Publicación
     const barChartOption = {
         tooltip: {
             trigger: 'axis',
@@ -94,7 +168,6 @@ export default function DashboardContent() {
         ]
     };
 
-    // Configuración Gráfico 2: Línea - Prospectos por Mes
     const lineChartOption = {
         tooltip: {
             trigger: 'axis'
@@ -152,7 +225,6 @@ export default function DashboardContent() {
         ]
     };
 
-    // Configuración Gráfico 3: Pastel - Leads por Provincia
     const pieChartOption = {
         tooltip: {
             trigger: 'item',
@@ -196,80 +268,101 @@ export default function DashboardContent() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat) => (
-                    <Card key={stat.title} className="border-border/50 hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                                        {stat.title}
-                                    </p>
-                                    <p className="text-3xl font-bold text-foreground mb-2">
-                                        {stat.value}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {stat.description}
-                                    </p>
+        <>
+            {/* Botón de exportación */}
+            <div className="mb-6 flex justify-end">
+                <button
+                    onClick={exportToPDF}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#005873] text-white rounded-md hover:bg-[#004860] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                    {isExporting ? (
+                        <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Generando PDF...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Download className="w-4 h-4"/>
+                            <span>Exportar a PDF</span>
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {/* Contenido a exportar */}
+            <div ref={contentRef} data-export-content className="space-y-6 p-6 rounded-lg">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {stats.map((stat) => (
+                        <Card key={stat.title} className="border-border/50 hover:shadow-md transition-shadow">
+                            <CardContent className="p-6">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                                            {stat.title}
+                                        </p>
+                                        <p className="text-3xl font-bold text-foreground mb-2">
+                                            {stat.value}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {stat.description}
+                                        </p>
+                                    </div>
+                                    <div className={cn("rounded-lg p-3", stat.iconBgColor)}>
+                                        <stat.icon className={cn("w-6 h-6", stat.iconColor)}/>
+                                    </div>
                                 </div>
-                                <div className={cn("rounded-lg p-3", stat.iconBgColor)}>
-                                    <stat.icon className={cn("w-6 h-6", stat.iconColor)} />
-                                </div>
-                            </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Gráficos */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="border-border/50">
+                        <CardHeader>
+                            <CardTitle className="text-base font-medium">Leads por Publicación</CardTitle>
+                            <CardDescription>Top 5 publicaciones con más leads</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ReactECharts
+                                option={barChartOption}
+                                style={{height: '300px'}}
+                                opts={{renderer: 'svg'}}
+                            />
                         </CardContent>
                     </Card>
-                ))}
-            </div>
 
-            {/* Gráficos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico 1: Leads por Publicación */}
+                    <Card className="border-border/50">
+                        <CardHeader>
+                            <CardTitle className="text-base font-medium">Tendencia de Prospectos</CardTitle>
+                            <CardDescription>Últimos 6 meses</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ReactECharts
+                                option={lineChartOption}
+                                style={{height: '300px'}}
+                                opts={{renderer: 'svg'}}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <Card className="border-border/50">
                     <CardHeader>
-                        <CardTitle className="text-base font-medium">Leads por Publicación</CardTitle>
-                        <CardDescription>Top 5 publicaciones con más leads</CardDescription>
+                        <CardTitle className="text-base font-medium">Distribución Geográfica</CardTitle>
+                        <CardDescription>Top 5 provincias con más leads</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ReactECharts
-                            option={barChartOption}
-                            style={{ height: '300px' }}
-                            opts={{ renderer: 'svg' }}
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* Gráfico 2: Prospectos por Mes */}
-                <Card className="border-border/50">
-                    <CardHeader>
-                        <CardTitle className="text-base font-medium">Tendencia de Prospectos</CardTitle>
-                        <CardDescription>Últimos 6 meses</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ReactECharts
-                            option={lineChartOption}
-                            style={{ height: '300px' }}
-                            opts={{ renderer: 'svg' }}
+                            option={pieChartOption}
+                            style={{height: '350px'}}
+                            opts={{renderer: 'svg'}}
                         />
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Gráfico 3: Leads por Provincia */}
-            <Card className="border-border/50">
-                <CardHeader>
-                    <CardTitle className="text-base font-medium">Distribución Geográfica</CardTitle>
-                    <CardDescription>Top 5 provincias con más leads</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ReactECharts
-                        option={pieChartOption}
-                        style={{ height: '350px' }}
-                        opts={{ renderer: 'svg' }}
-                    />
-                </CardContent>
-            </Card>
-        </div>
+        </>
     );
 }
